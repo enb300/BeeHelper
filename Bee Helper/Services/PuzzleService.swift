@@ -78,7 +78,7 @@ class PuzzleService: ObservableObject {
         return PuzzleData.sample
     }
     
-    func createPuzzleFromManualInput(letters: [Character], centerLetter: Character) {
+    func createPuzzleFromManualInput(letters: [String], centerLetter: String) {
         // For manual input, we'll need to fetch word list from a dictionary API
         // For now, use sample words that match the input letters
         let sampleWords = [
@@ -88,7 +88,7 @@ class PuzzleService: ObservableObject {
         ]
         
         let validWords = sampleWords.filter { word in
-            let wordSet = Set(word.uppercased())
+            let wordSet = Set(word.uppercased().map { String($0) })
             let letterSet = Set(letters.map { $0.uppercased() })
             return wordSet.isSubset(of: letterSet) && word.contains(centerLetter.uppercased())
         }

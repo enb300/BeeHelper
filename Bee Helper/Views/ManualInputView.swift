@@ -4,7 +4,7 @@ struct ManualInputView: View {
     @EnvironmentObject var puzzleService: PuzzleService
     @Environment(\.dismiss) private var dismiss
     
-    @State private var letters: [Character] = Array(repeating: " ", count: 7)
+    @State private var letters: [String] = Array(repeating: "", count: 7)
     @State private var selectedCenterIndex = 0
     @State private var showingError = false
     @State private var errorMessage = ""
@@ -94,7 +94,7 @@ struct ManualInputView: View {
     }
     
     private var canSubmit: Bool {
-        letters.allSatisfy { $0 != " " } && letters.count == 7
+        letters.allSatisfy { !$0.isEmpty } && letters.count == 7
     }
     
     private func submitLetters() {
@@ -119,7 +119,7 @@ struct ManualInputView: View {
 }
 
 struct LetterInputCircle: View {
-    @Binding var letter: Character
+    @Binding var letter: String
     let isSelected: Bool
     let onTap: () -> Void
     
@@ -130,13 +130,13 @@ struct LetterInputCircle: View {
                     .fill(isSelected ? Color.yellow : Color.blue)
                     .frame(width: 50, height: 50)
                 
-                if letter == " " {
+                if letter.isEmpty {
                     Text("?")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                 } else {
-                    Text(String(letter))
+                    Text(letter)
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)

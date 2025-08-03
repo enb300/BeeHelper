@@ -190,9 +190,7 @@ struct DatePickerView: View {
     }
 }
 
-struct ArchiveView_Previews: PreviewProvider {
-    static var previews: some View {
-        ArchiveView()
-            .environmentObject(PuzzleService())
-    }
+#Preview {
+    ArchiveView()
+        .environmentObject(PuzzleService())
 } 

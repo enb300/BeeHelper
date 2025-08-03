@@ -97,7 +97,7 @@ struct LetterDisplayView: View {
 }
 
 struct LetterCircle: View {
-    let letter: Character
+    let letter: String
     let isCenter: Bool
     
     var body: some View {
@@ -106,7 +106,7 @@ struct LetterCircle: View {
                 .fill(isCenter ? Color.yellow : Color.blue)
                 .frame(width: 50, height: 50)
             
-            Text(String(letter))
+            Text(letter)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)

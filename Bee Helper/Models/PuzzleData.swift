@@ -3,8 +3,8 @@ import Foundation
 struct PuzzleData: Codable, Identifiable {
     let id = UUID()
     let date: Date
-    let letters: [Character]
-    let centerLetter: Character
+    let letters: [String]  // Changed from [Character] to [String]
+    let centerLetter: String  // Changed from Character to String
     let words: [String]
     let pangrams: [String]
     let compoundWords: [String]
@@ -13,8 +13,8 @@ struct PuzzleData: Codable, Identifiable {
     var totalPangrams: Int { pangrams.count }
     var totalCompoundWords: Int { compoundWords.count }
     
-    var wordCountByFirstLetter: [Character: Int] {
-        Dictionary(grouping: words, by: { $0.first! })
+    var wordCountByFirstLetter: [String: Int] {  // Changed from Character to String
+        Dictionary(grouping: words, by: { String($0.prefix(1)) })
             .mapValues { $0.count }
     }
     
@@ -24,7 +24,7 @@ struct PuzzleData: Codable, Identifiable {
             .mapValues { $0.count }
     }
     
-    init(date: Date, letters: [Character], centerLetter: Character, words: [String]) {
+    init(date: Date, letters: [String], centerLetter: String, words: [String]) {
         self.date = date
         self.letters = letters
         self.centerLetter = centerLetter
@@ -32,7 +32,7 @@ struct PuzzleData: Codable, Identifiable {
         
         // Calculate pangrams (words using all 7 letters)
         self.pangrams = words.filter { word in
-            let wordSet = Set(word.lowercased())
+            let wordSet = Set(word.lowercased().map { String($0) })
             let letterSet = Set(letters.map { $0.lowercased() })
             return wordSet == letterSet
         }
