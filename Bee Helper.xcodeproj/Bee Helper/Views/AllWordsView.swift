@@ -3,18 +3,26 @@ import SwiftUI
 struct AllWordsView: View {
     @EnvironmentObject var puzzleService: PuzzleService
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 24) {
+                LazyVStack(spacing: 20) {
                     if let puzzle = puzzleService.currentPuzzle {
+                        // All words section
+                        WordSection(
+                            title: "All Words",
+                            subtitle: "\(puzzle.totalWords) total words",
+                            words: puzzle.words.sorted(),
+                            color: .blue
+                        )
+                        
                         // Pangrams section
                         if !puzzle.pangrams.isEmpty {
                             WordSection(
                                 title: "Pangrams",
-                                subtitle: "Words using all 7 letters",
-                                words: puzzle.pangrams,
+                                subtitle: "\(puzzle.totalPangrams) pangrams (use all 7 letters)",
+                                words: puzzle.pangrams.sorted(),
                                 color: .orange
                             )
                         }
@@ -23,41 +31,33 @@ struct AllWordsView: View {
                         if !puzzle.compoundWords.isEmpty {
                             WordSection(
                                 title: "Compound Words",
-                                subtitle: "Words that can be split into two valid words",
-                                words: puzzle.compoundWords,
+                                subtitle: "\(puzzle.totalCompoundWords) compound words",
+                                words: puzzle.compoundWords.sorted(),
                                 color: .green
                             )
                         }
-                        
-                        // All words section
-                        WordSection(
-                            title: "All Words",
-                            subtitle: "Complete list of valid words",
-                            words: puzzle.words,
-                            color: .blue
-                        )
                     } else {
                         VStack(spacing: 16) {
                             Image(systemName: "textformat.abc")
                                 .font(.system(size: 50))
                                 .foregroundColor(.secondary)
                             
-                            Text("No puzzle data available")
+                            Text("No puzzle loaded")
                                 .font(.headline)
-                                .foregroundColor(.primary)
+                                .foregroundColor(.secondary)
                             
-                            Text("Try refreshing the puzzle or entering letters manually")
+                            Text("Load a puzzle to see all words")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
                         }
-                        .padding(.vertical, 40)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.top, 100)
                     }
                 }
                 .padding()
             }
             .navigationTitle("All Words")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
@@ -76,20 +76,20 @@ struct WordSection: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .fontWeight(.bold)
+                    .foregroundColor(color)
                 
                 Text(subtitle)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                ForEach(words.sorted(), id: \.self) { word in
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                ForEach(words, id: \.self) { word in
                     WordCard(word: word, color: color)
                 }
             }
@@ -105,31 +105,17 @@ struct WordCard: View {
     let color: Color
     
     var body: some View {
-        HStack {
-            Text(word.uppercased())
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            
-            Spacer()
-            
-            Text("\(word.count)")
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(color)
-                .cornerRadius(8)
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        Text(word)
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundColor(.primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(color.opacity(0.1))
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color.opacity(0.3), lineWidth: 1)
+            )
     }
-}
-
-#Preview {
-    AllWordsView()
-        .environmentObject(PuzzleService())
 } 

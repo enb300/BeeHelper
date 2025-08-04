@@ -1,81 +1,218 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 class PuzzleService: ObservableObject {
     @Published var currentPuzzle: PuzzleData?
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private let nytURL = "https://www.nytimes.com/puzzles/spelling-bee"
-    private let sbsolverURL = "https://www.sbsolver.com"
+    private let apiBaseURL = "http://localhost:5001"
+    
+    init() {
+        Task {
+            await fetchTodayPuzzle()
+        }
+    }
     
     func fetchTodayPuzzle() async {
-        await MainActor.run {
-            isLoading = true
-            errorMessage = nil
-        }
+        isLoading = true
+        errorMessage = nil
         
         do {
-            // Try to fetch from NYT first
-            if let puzzle = await fetchFromNYT() {
-                await MainActor.run {
-                    self.currentPuzzle = puzzle
-                    self.isLoading = false
-                }
+            guard let url = URL(string: "\(apiBaseURL)/api/spelling-bee/today") else {
+                errorMessage = "Invalid URL"
+                isLoading = false
                 return
             }
             
-            // Fallback to sbsolver.com
-            if let puzzle = await fetchFromSBSolver() {
-                await MainActor.run {
-                    self.currentPuzzle = puzzle
-                    self.isLoading = false
-                }
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                errorMessage = "Server error"
+                isLoading = false
                 return
             }
             
-            // If both fail, use sample data
-            await MainActor.run {
-                self.currentPuzzle = PuzzleData.sample
-                self.isLoading = false
-                self.errorMessage = "Could not fetch today's puzzle. Using sample data."
-            }
+            let apiResponse = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
+            
+            // Convert API response to PuzzleData
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let puzzleDate = dateFormatter.date(from: apiResponse.date) ?? Date()
+            
+            let puzzleData = PuzzleData(
+                date: puzzleDate,
+                letters: apiResponse.letters,
+                centerLetter: apiResponse.center_letter,
+                words: apiResponse.words
+            )
+            
+            currentPuzzle = puzzleData
+            isLoading = false
             
         } catch {
-            await MainActor.run {
-                self.isLoading = false
-                self.errorMessage = "Failed to fetch puzzle: \(error.localizedDescription)"
-            }
+            errorMessage = "Failed to fetch puzzle: \(error.localizedDescription)"
+            isLoading = false
+            
+            // Fallback to sample data if API fails
+            currentPuzzle = getTodayPuzzle()
         }
     }
     
-    private func fetchFromNYT() async -> PuzzleData? {
-        guard let url = URL(string: nytURL) else { return nil }
+    func fetchYesterdayPuzzle() async {
+        isLoading = true
+        errorMessage = nil
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let htmlString = String(data: data, encoding: .utf8) ?? ""
+            guard let url = URL(string: "\(apiBaseURL)/api/spelling-bee/yesterday") else {
+                errorMessage = "Invalid URL"
+                isLoading = false
+                return
+            }
             
-            // Parse the HTML to extract puzzle data
-            // This is a simplified parser - in a real app you'd need more robust parsing
-            return parseNYTHTML(htmlString)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                errorMessage = "Server error"
+                isLoading = false
+                return
+            }
+            
+            let apiResponse = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
+            
+            // Convert API response to PuzzleData
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let puzzleDate = dateFormatter.date(from: apiResponse.date) ?? Date()
+            
+            let puzzleData = PuzzleData(
+                date: puzzleDate,
+                letters: apiResponse.letters,
+                centerLetter: apiResponse.center_letter,
+                words: apiResponse.words
+            )
+            
+            currentPuzzle = puzzleData
+            isLoading = false
+            
         } catch {
-            print("Failed to fetch from NYT: \(error)")
-            return nil
+            errorMessage = "Failed to fetch yesterday's puzzle: \(error.localizedDescription)"
+            isLoading = false
         }
     }
     
-    private func fetchFromSBSolver() async -> PuzzleData? {
-        // For now, return nil as sbsolver.com might not have a public API
-        // In a real implementation, you'd need to implement web scraping
-        return nil
+    func fetchArchivePuzzle(for date: Date) async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let dateString = dateFormatter.string(from: date)
+            
+            guard let url = URL(string: "\(apiBaseURL)/api/spelling-bee/archive/\(dateString)") else {
+                errorMessage = "Invalid URL"
+                isLoading = false
+                return
+            }
+            
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                errorMessage = "Server error"
+                isLoading = false
+                return
+            }
+            
+            let apiResponse = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
+            
+            // Convert API response to PuzzleData
+            let puzzleDate = dateFormatter.date(from: apiResponse.date) ?? date
+            
+            let puzzleData = PuzzleData(
+                date: puzzleDate,
+                letters: apiResponse.letters,
+                centerLetter: apiResponse.center_letter,
+                words: apiResponse.words
+            )
+            
+            currentPuzzle = puzzleData
+            isLoading = false
+            
+        } catch {
+            errorMessage = "Failed to fetch archive puzzle: \(error.localizedDescription)"
+            isLoading = false
+        }
     }
     
-    private func parseNYTHTML(_ html: String) -> PuzzleData? {
-        // This is a simplified parser
-        // In a real implementation, you'd use a proper HTML parser
-        // For now, return sample data
-        return PuzzleData.sample
+    func generateCustomPuzzle(letters: [String], centerLetter: String) async {
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let lettersString = letters.joined()
+            guard let url = URL(string: "\(apiBaseURL)/api/spelling-bee/generate?letters=\(lettersString)&center=\(centerLetter)") else {
+                errorMessage = "Invalid URL"
+                isLoading = false
+                return
+            }
+            
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                errorMessage = "Server error"
+                isLoading = false
+                return
+            }
+            
+            let apiResponse = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
+            
+            // Convert API response to PuzzleData
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let puzzleDate = dateFormatter.date(from: apiResponse.date) ?? Date()
+            
+            let puzzleData = PuzzleData(
+                date: puzzleDate,
+                letters: apiResponse.letters,
+                centerLetter: apiResponse.center_letter,
+                words: apiResponse.words
+            )
+            
+            currentPuzzle = puzzleData
+            isLoading = false
+            
+        } catch {
+            errorMessage = "Failed to generate puzzle: \(error.localizedDescription)"
+            isLoading = false
+        }
+    }
+    
+    private func getTodayPuzzle() -> PuzzleData {
+        // Fallback sample data if API is unavailable
+        let letters = ["A", "E", "G", "L", "N", "O", "Y"]
+        let centerLetter = "E"
+        
+        let words = [
+            "AEON", "AGELONG", "ALGAE", "ALLEGE", "ALLELE", "ALLEY", "ALOE", "ALONE", "ANGEL", "ANGLE",
+            "ANNEAL", "ANYONE", "EAGLE", "EELY", "EGGNOG", "EGGY", "ELAN", "ELEGY", "ENGAGE", "GAGE",
+            "GAGGLE", "GALE", "GALLEON", "GALLEY", "GELEE", "GENE", "GEOLOGY", "GLEAN", "GLEE", "GLEN",
+            "GOGGLE", "GONE", "GOOEY", "GOOGLE", "LANE", "LEAN", "LEANLY", "LEGAL", "LEGALLY", "LEGGY",
+            "LOGE", "LONE", "LONELY", "NENE", "NEON", "NOEL", "NONE", "OENOLOGY", "OGEE", "OGLE", "OLEO",
+            "YELL", "GENEALOGY"
+        ]
+        
+        return PuzzleData(
+            date: Date(),
+            letters: letters,
+            centerLetter: centerLetter,
+            words: words
+        )
     }
     
     func createPuzzleFromManualInput(letters: [String], centerLetter: String) {
@@ -102,10 +239,10 @@ class PuzzleService: ObservableObject {
     }
     
     func fetchPuzzleForDate(_ date: Date) async {
-        // In a real app, you'd fetch archived puzzles
-        // For now, return sample data
+        // In a real app, you'd fetch archived puzzles from SBSolver
+        // For now, return today's puzzle data with the requested date
         await MainActor.run {
-            self.currentPuzzle = PuzzleData.sample
+            self.currentPuzzle = getTodayPuzzle()
         }
     }
 } 

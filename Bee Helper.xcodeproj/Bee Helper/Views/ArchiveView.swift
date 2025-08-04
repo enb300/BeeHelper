@@ -4,15 +4,30 @@ struct ArchiveView: View {
     @EnvironmentObject var puzzleService: PuzzleService
     @State private var selectedDate = Date()
     @State private var showingDatePicker = false
+    @State private var showingPuzzleDetail = false
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                // Date selector
+                // Quick access buttons
                 VStack(spacing: 15) {
-                    Text("Select Date")
+                    Text("Quick Access")
                         .font(.headline)
                         .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 15) {
+                        QuickAccessButton(title: "Today's Puzzle", action: {
+                            Task {
+                                await puzzleService.fetchTodayPuzzle()
+                            }
+                        })
+                        
+                        QuickAccessButton(title: "Yesterday's Puzzle", action: {
+                            Task {
+                                await puzzleService.fetchYesterdayPuzzle()
+                            }
+                        })
+                    }
                     
                     Button(action: {
                         showingDatePicker = true
@@ -21,7 +36,7 @@ struct ArchiveView: View {
                             Image(systemName: "calendar")
                                 .font(.title2)
                             
-                            Text(dateFormatter.string(from: selectedDate))
+                            Text("Pick a Date")
                                 .font(.title3)
                                 .fontWeight(.medium)
                             
@@ -39,35 +54,23 @@ struct ArchiveView: View {
                 }
                 .padding(.horizontal)
                 
-                // Quick date buttons
-                VStack(spacing: 10) {
-                    Text("Quick Select")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    
-                    HStack(spacing: 15) {
-                        QuickDateButton(title: "Yesterday", date: Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date())
-                        QuickDateButton(title: "Last Week", date: Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date())
-                    }
-                    
-                    HStack(spacing: 15) {
-                        QuickDateButton(title: "Last Month", date: Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date())
-                        QuickDateButton(title: "Random", date: randomDate())
-                    }
-                }
-                .padding(.horizontal)
-                
-                Spacer()
-                
-                // Puzzle display for selected date
+                // Current puzzle display
                 if let puzzle = puzzleService.currentPuzzle {
-                    VStack(spacing: 15) {
-                        Text("Puzzle for \(dateFormatter.string(from: puzzle.date))")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 20) {
+                        // Header with dynamic title and date
+                        VStack(spacing: 8) {
+                            Text(getHeaderTitle(for: puzzle.date))
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primary)
+                            
+                            Text(getFormattedDate(puzzle.date))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                         
                         // Letters display
-                        HStack(spacing: 15) {
+                        HStack(spacing: 12) {
                             ForEach(puzzle.letters, id: \.self) { letter in
                                 LetterCircle(
                                     letter: letter,
@@ -78,15 +81,51 @@ struct ArchiveView: View {
                         
                         // Stats
                         HStack(spacing: 20) {
-                            StatCard(title: "Words", value: "\(puzzle.totalWords)")
-                            StatCard(title: "Pangrams", value: "\(puzzle.totalPangrams)")
-                            StatCard(title: "Compound", value: "\(puzzle.totalCompoundWords)")
+                            StatItem(title: "Words", value: "\(puzzle.totalWords)")
+                            StatItem(title: "Pangrams", value: "\(puzzle.totalPangrams)")
+                            StatItem(title: "Compound", value: "\(puzzle.totalCompoundWords)")
                         }
+                        
+                        // Navigation arrows
+                        HStack(spacing: 30) {
+                            Button(action: {
+                                navigateToPreviousDay()
+                            }) {
+                                Image(systemName: "chevron.left.circle.fill")
+                                    .font(.system(size: 44))
+                                    .foregroundColor(.blue)
+                            }
+                            .disabled(puzzleService.isLoading)
+                            
+                            Button(action: {
+                                navigateToNextDay()
+                            }) {
+                                Image(systemName: "chevron.right.circle.fill")
+                                    .font(.system(size: 44))
+                                    .foregroundColor(.blue)
+                            }
+                            .disabled(puzzleService.isLoading)
+                        }
+                        .padding(.top, 20)
+                        
+                        // Hint text
+                        Text("Tap to view full puzzle")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 8)
                     }
                     .padding()
                     .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .cornerRadius(16)
                     .padding(.horizontal)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                    )
+                    .onTapGesture {
+                        // Navigate to detail view
+                        showingPuzzleDetail = true
+                    }
                 } else {
                     VStack(spacing: 15) {
                         Image(systemName: "calendar.badge.plus")
@@ -105,48 +144,107 @@ struct ArchiveView: View {
                     .padding()
                 }
                 
+                // Loading state
+                if puzzleService.isLoading {
+                    ProgressView("Loading puzzle...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.top, 100)
+                }
+                
+                // Error state
+                if let errorMessage = puzzleService.errorMessage {
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.title)
+                            .foregroundColor(.orange)
+                        Text("Error")
+                            .font(.headline)
+                        Text(errorMessage)
+                            .font(.body)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                }
+                
                 Spacer()
             }
             .navigationTitle("Archive")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingDatePicker) {
-                DatePickerView(selectedDate: $selectedDate)
+                DatePickerView(selectedDate: $selectedDate) {
+                    Task {
+                        await puzzleService.fetchArchivePuzzle(for: selectedDate)
+                    }
+                }
             }
-            .onChange(of: selectedDate) { oldValue, newValue in
-                Task {
-                    await puzzleService.fetchPuzzleForDate(newValue)
+            .sheet(isPresented: $showingPuzzleDetail) {
+                if let puzzle = puzzleService.currentPuzzle {
+                    ArchivePuzzleDetailView(puzzle: puzzle)
+                        .environmentObject(puzzleService)
                 }
             }
         }
     }
     
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter
+    private func getHeaderTitle(for date: Date) -> String {
+        let calendar = Calendar.current
+        let today = Date()
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        
+        if calendar.isDate(date, inSameDayAs: today) {
+            return "Today's Puzzle"
+        } else if calendar.isDate(date, inSameDayAs: yesterday) {
+            return "Yesterday's Puzzle"
+        } else {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "EEEE"
+            let dayName = dateFormatter.string(from: date)
+            return "\(dayName)'s Puzzle"
+        }
     }
     
-    private func randomDate() -> Date {
-        let calendar = Calendar.current
-        let startDate = calendar.date(byAdding: .year, value: -1, to: Date()) ?? Date()
-        let endDate = calendar.date(byAdding: .day, value: -1, to: Date()) ?? Date()
-        let timeInterval = endDate.timeIntervalSince(startDate)
-        let randomTimeInterval = Double.random(in: 0...timeInterval)
-        return startDate.addingTimeInterval(randomTimeInterval)
+    private func getFormattedDate(_ date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        return dateFormatter.string(from: date)
     }
+    
+    private func navigateToPreviousDay() {
+        guard let currentPuzzle = puzzleService.currentPuzzle else { return }
+        let calendar = Calendar.current
+        let previousDay = calendar.date(byAdding: .day, value: -1, to: currentPuzzle.date) ?? currentPuzzle.date
+        
+        Task {
+            await puzzleService.fetchArchivePuzzle(for: previousDay)
+        }
+    }
+    
+    private func navigateToNextDay() {
+        guard let currentPuzzle = puzzleService.currentPuzzle else { return }
+        let calendar = Calendar.current
+        let nextDay = calendar.date(byAdding: .day, value: 1, to: currentPuzzle.date) ?? currentPuzzle.date
+        
+        // Don't navigate to future dates
+        let today = Date()
+        if nextDay <= today {
+            Task {
+                await puzzleService.fetchArchivePuzzle(for: nextDay)
+            }
+        }
+    }
+    
 }
 
-struct QuickDateButton: View {
+struct QuickAccessButton: View {
     let title: String
-    let date: Date
-    @EnvironmentObject var puzzleService: PuzzleService
+    let action: () -> Void
     
     var body: some View {
-        Button(action: {
-            Task {
-                await puzzleService.fetchPuzzleForDate(date)
-            }
-        }) {
+        Button(action: action) {
             Text(title)
                 .font(.subheadline)
                 .fontWeight(.medium)
@@ -160,9 +258,29 @@ struct QuickDateButton: View {
     }
 }
 
+struct StatItem: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
 struct DatePickerView: View {
     @Binding var selectedDate: Date
     @Environment(\.dismiss) private var dismiss
+    let onDateSelected: () -> Void
     
     var body: some View {
         NavigationView {
@@ -176,12 +294,24 @@ struct DatePickerView: View {
                 .padding()
                 
                 Spacer()
+                
+                Button("Load Puzzle") {
+                    onDateSelected()
+                    dismiss()
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color.blue)
+                .cornerRadius(8)
+                .padding(.bottom, 20)
             }
             .navigationTitle("Select Date")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }

@@ -8,184 +8,211 @@ struct ArchiveView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                // Date selector
-                VStack(spacing: 15) {
-                    Text("Select Date")
-                        .font(.headline)
+                // Header
+                VStack(spacing: 12) {
+                    Text("Puzzle Archive")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Browse past NYT Spelling Bee puzzles")
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.horizontal, 20)
+                
+                // Quick access buttons
+                VStack(spacing: 16) {
+                    Button(action: {
+                        Task {
+                            await puzzleService.fetchTodayPuzzle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "sun.max.fill")
+                                .foregroundColor(.orange)
+                            Text("Today's Puzzle")
+                                .fontWeight(.semibold)
+                            Spacer()
+                            if puzzleService.isLoading {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                    }
+                    .disabled(puzzleService.isLoading)
+                    
+                    Button(action: {
+                        Task {
+                            await puzzleService.fetchYesterdayPuzzle()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "clock.fill")
+                                .foregroundColor(.blue)
+                            Text("Yesterday's Puzzle")
+                                .fontWeight(.semibold)
+                            Spacer()
+                            if puzzleService.isLoading {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                    }
+                    .disabled(puzzleService.isLoading)
                     
                     Button(action: {
                         showingDatePicker = true
                     }) {
                         HStack {
                             Image(systemName: "calendar")
-                                .font(.title2)
-                            
-                            Text(dateFormatter.string(from: selectedDate))
-                                .font(.title3)
-                                .fontWeight(.medium)
-                            
+                                .foregroundColor(.green)
+                            Text("Pick a Date")
+                                .fontWeight(.semibold)
                             Spacer()
-                            
-                            Image(systemName: "chevron.down")
-                                .font(.caption)
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
                         }
-                        .foregroundColor(.primary)
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(12)
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 20)
                 
-                // Quick date buttons
-                VStack(spacing: 10) {
-                    Text("Quick Select")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    
-                    HStack(spacing: 15) {
-                        QuickDateButton(title: "Yesterday", date: Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date())
-                        QuickDateButton(title: "Last Week", date: Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date())
-                    }
-                    
-                    HStack(spacing: 15) {
-                        QuickDateButton(title: "Last Month", date: Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date())
-                        QuickDateButton(title: "Random", date: randomDate())
-                    }
-                }
-                .padding(.horizontal)
-                
-                Spacer()
-                
-                // Puzzle display for selected date
+                // Current puzzle display
                 if let puzzle = puzzleService.currentPuzzle {
-                    VStack(spacing: 15) {
-                        Text("Puzzle for \(dateFormatter.string(from: puzzle.date))")
+                    VStack(spacing: 16) {
+                        Text("Selected Puzzle")
                             .font(.headline)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
                         
-                        // Letters display
-                        HStack(spacing: 15) {
-                            ForEach(puzzle.letters, id: \.self) { letter in
-                                LetterCircle(
-                                    letter: letter,
-                                    isCenter: letter == puzzle.centerLetter
-                                )
+                        VStack(spacing: 12) {
+                            // Date
+                            Text(puzzle.date, style: .date)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            
+                            // Letters
+                            HStack(spacing: 8) {
+                                ForEach(puzzle.letters, id: \.self) { letter in
+                                    LetterCircle(
+                                        letter: letter,
+                                        isCenter: letter == puzzle.centerLetter
+                                    )
+                                }
+                            }
+                            
+                            // Stats
+                            HStack(spacing: 20) {
+                                StatItem(title: "Words", value: "\(puzzle.totalWords)")
+                                StatItem(title: "Pangrams", value: "\(puzzle.totalPangrams)")
+                                StatItem(title: "Compounds", value: "\(puzzle.totalCompoundWords)")
                             }
                         }
-                        
-                        // Stats
-                        HStack(spacing: 20) {
-                            StatCard(title: "Words", value: "\(puzzle.totalWords)")
-                            StatCard(title: "Pangrams", value: "\(puzzle.totalPangrams)")
-                            StatCard(title: "Compound", value: "\(puzzle.totalCompoundWords)")
-                        }
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(16)
+                        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                     }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-                } else {
-                    VStack(spacing: 15) {
-                        Image(systemName: "calendar.badge.plus")
-                            .font(.system(size: 50))
-                            .foregroundColor(.secondary)
-                        
-                        Text("Select a date to view archived puzzle")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Puzzle data may not be available for all dates")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding()
+                    .padding(.horizontal, 20)
+                }
+                
+                // Error message
+                if let errorMessage = puzzleService.errorMessage {
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .padding(.horizontal, 20)
                 }
                 
                 Spacer()
             }
             .navigationTitle("Archive")
-            .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $showingDatePicker) {
-                DatePickerView(selectedDate: $selectedDate)
-            }
-            .onChange(of: selectedDate) { oldValue, newValue in
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .sheet(isPresented: $showingDatePicker) {
+            DatePickerView(selectedDate: $selectedDate) {
                 Task {
-                    await puzzleService.fetchPuzzleForDate(newValue)
+                    await puzzleService.fetchArchivePuzzle(for: selectedDate)
                 }
             }
         }
-    }
-    
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter
-    }
-    
-    private func randomDate() -> Date {
-        let calendar = Calendar.current
-        let startDate = calendar.date(byAdding: .year, value: -1, to: Date()) ?? Date()
-        let endDate = calendar.date(byAdding: .day, value: -1, to: Date()) ?? Date()
-        let timeInterval = endDate.timeIntervalSince(startDate)
-        let randomTimeInterval = Double.random(in: 0...timeInterval)
-        return startDate.addingTimeInterval(randomTimeInterval)
-    }
-}
-
-struct QuickDateButton: View {
-    let title: String
-    let date: Date
-    @EnvironmentObject var puzzleService: PuzzleService
-    
-    var body: some View {
-        Button(action: {
-            Task {
-                await puzzleService.fetchPuzzleForDate(date)
-            }
-        }) {
-            Text(title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(Color.blue)
-                .cornerRadius(8)
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 
 struct DatePickerView: View {
     @Binding var selectedDate: Date
+    let onDateSelected: () -> Void
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
-            VStack {
+            VStack(spacing: 20) {
+                Text("Select a Date")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
                 DatePicker(
                     "Select Date",
                     selection: $selectedDate,
+                    in: ...Date(),
                     displayedComponents: .date
                 )
-                .datePickerStyle(.wheel)
+                .datePickerStyle(.graphical)
                 .padding()
                 
-                Spacer()
+                Button("Load Puzzle") {
+                    onDateSelected()
+                    dismiss()
+                }
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .cornerRadius(12)
+                .padding(.horizontal, 20)
             }
-            .navigationTitle("Select Date")
+            .navigationTitle("Date Picker")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
                         dismiss()
                     }
                 }
             }
+        }
+    }
+}
+
+struct StatItem: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+            
+            Text(title)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.secondary)
         }
     }
 }
