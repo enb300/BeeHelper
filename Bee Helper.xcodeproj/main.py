@@ -113,7 +113,12 @@ def scrape_word_tips_today():
         
     except Exception as e:
         print(f"Error scraping word.tips: {e}")
-        return None
+        # Return fallback data instead of None
+        return {
+            "letters": ["A", "E", "I", "L", "N", "O", "T"],
+            "center_letter": "E",
+            "source": "word.tips (error fallback)"
+        }
 
 def determine_center_letter_from_text(letters, text):
     """Determine center letter by analyzing letter frequency in text"""
@@ -164,7 +169,12 @@ def scrape_word_tips_yesterday():
         
     except Exception as e:
         print(f"Error scraping word.tips yesterday: {e}")
-        return None
+        # Return fallback data instead of None
+        return {
+            "letters": ["A", "E", "G", "L", "N", "O", "Y"],
+            "center_letter": "E",
+            "source": "word.tips (yesterday, error fallback)"
+        }
 
 def scrape_word_finder_archive(target_date=None):
     """Scrape archive data from The Word Finder"""
@@ -742,6 +752,10 @@ def get_available_sources():
 @app.route("/")
 def hello():
     return "Spelling Bee API is running with multiple sources and archive support."
+
+@app.route("/test")
+def test():
+    return jsonify({"status": "ok", "message": "API is working"})
 
 if __name__ == "__main__":
     import os
