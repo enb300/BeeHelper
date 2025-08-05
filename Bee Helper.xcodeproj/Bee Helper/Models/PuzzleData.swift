@@ -6,6 +6,7 @@ struct PuzzleData: Codable, Identifiable {
     let letters: [String]
     let centerLetter: String
     let words: [String]
+    let source: String?
 
     var totalWords: Int { words.count }
     var totalPangrams: Int { pangrams.count }
@@ -23,6 +24,11 @@ struct PuzzleData: Codable, Identifiable {
             word.contains("-") || word.contains(" ")
         }
     }
+    
+    var isRealData: Bool {
+        guard let source = source else { return false }
+        return !source.lowercased().contains("fallback")
+    }
 
     var wordCountByFirstLetter: [String: Int] {
         Dictionary(grouping: words, by: { String($0.prefix(1)).uppercased() })
@@ -35,11 +41,12 @@ struct PuzzleData: Codable, Identifiable {
             .mapValues { $0.count }
     }
 
-    init(date: Date, letters: [String], centerLetter: String, words: [String]) {
+    init(date: Date, letters: [String], centerLetter: String, words: [String], source: String? = nil) {
         self.id = UUID()
         self.date = date
         self.letters = letters
         self.centerLetter = centerLetter
         self.words = words
+        self.source = source
     }
 } 

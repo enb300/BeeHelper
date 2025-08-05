@@ -7,6 +7,7 @@ struct SpellingBeeResponse: Codable {
     let centerLetter: String
     let words: [String]
     let stats: Stats
+    let source: String?
 }
 
 struct Stats: Codable {
@@ -44,7 +45,8 @@ class PuzzleService: ObservableObject {
                 date: date,
                 letters: response.letters,
                 centerLetter: response.centerLetter,
-                words: response.words
+                words: response.words,
+                source: response.source
             )
         } catch {
             errorMessage = "Failed to fetch today's puzzle: \(error.localizedDescription)"
@@ -71,7 +73,8 @@ class PuzzleService: ObservableObject {
                 date: date,
                 letters: response.letters,
                 centerLetter: response.centerLetter,
-                words: response.words
+                words: response.words,
+                source: response.source
             )
         } catch {
             errorMessage = "Failed to fetch yesterday's puzzle: \(error.localizedDescription)"
@@ -99,7 +102,8 @@ class PuzzleService: ObservableObject {
                 date: responseDate,
                 letters: response.letters,
                 centerLetter: response.centerLetter,
-                words: response.words
+                words: response.words,
+                source: response.source
             )
         } catch {
             errorMessage = "Failed to fetch archive puzzle: \(error.localizedDescription)"
@@ -127,7 +131,8 @@ class PuzzleService: ObservableObject {
                 date: date,
                 letters: response.letters,
                 centerLetter: response.centerLetter,
-                words: response.words
+                words: response.words,
+                source: response.source
             )
         } catch {
             errorMessage = "Failed to generate puzzle: \(error.localizedDescription)"
@@ -143,7 +148,8 @@ class PuzzleService: ObservableObject {
             date: today,
             letters: ["T", "U", "L", "E", "I", "G", "D"],
             centerLetter: "E",
-            words: ["delight", "delightful", "delightfully", "delightfulness", "delighted", "delighting", "delights", "delightedly", "delightful", "delightfully", "delightfulness"]
+            words: ["delight", "delightful", "delightfully", "delightfulness", "delighted", "delighting", "delights", "delightedly", "delightful", "delightfully", "delightfulness"],
+            source: "fallback"
         )
     }
 } 

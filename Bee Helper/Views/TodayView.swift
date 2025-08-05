@@ -4,59 +4,67 @@ struct TodayView: View {
     @EnvironmentObject var puzzleService: PuzzleService
     @State private var showingManualInput = false
     @State private var showingAllWords = false
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 20) {
-                    // Header with refresh button
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Today's Puzzle")
+ 
+                    
+
+                    // Header with dynamic title and date
+                    if let puzzle = puzzleService.currentPuzzle {
+                        VStack(spacing: 8) {
+                            Text(getHeaderTitle(for: puzzle.date))
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
                             
-                            Text(Date().formatted(date: .abbreviated, time: .omitted))
+                            Text(getFormattedDate(puzzle.date))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            Task {
-                                await puzzleService.fetchTodayPuzzle()
-                            }
-                        }) {
-                            Image(systemName: "arrow.clockwise")
-                                .font(.title2)
-                                .foregroundColor(.blue)
-                        }
-                        .disabled(puzzleService.isLoading)
+                        .padding(.top, 20)
+                    } else {
+                        Text("Today's Puzzle")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .padding(.top, 20)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
                     
                     // Loading state
                     if puzzleService.isLoading {
-                        VStack(spacing: 16) {
-                            ProgressView()
-                                .scaleEffect(1.2)
-                            
-                            Text("Fetching today's puzzle...")
-                                .font(.subheadline)
+                        ProgressView("Loading puzzle...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.top, 100)
+                    }
+                    
+                    // Error state
+                    if let errorMessage = puzzleService.errorMessage {
+                        VStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.title)
+                                .foregroundColor(.orange)
+                            Text("Error")
+                                .font(.headline)
+                            Text(errorMessage)
+                                .font(.body)
+                                .multilineTextAlignment(.center)
                                 .foregroundColor(.secondary)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
-                    } else if let puzzle = puzzleService.currentPuzzle {
-                        // Letters display
-                        LetterDisplayView()
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 20)
+                    }
+                    
+                    // Letters display
+                    if puzzleService.currentPuzzle != nil {
+                        LetterDisplayView(letters: puzzleService.currentPuzzle!.letters, centerLetter: puzzleService.currentPuzzle!.centerLetter, puzzleDate: puzzleService.currentPuzzle!.date)
                             .padding(.horizontal, 20)
                         
-                        // Stats cards
-                        StatsView()
+                        // Stats
+                        StatsView(puzzle: puzzleService.currentPuzzle!)
                             .padding(.horizontal, 20)
                         
                         // Word count table
@@ -68,82 +76,19 @@ struct TodayView: View {
                             .padding(.horizontal, 20)
                         
                         // Action buttons
-                        VStack(spacing: 16) {
-                            Button(action: {
+                        HStack(spacing: 16) {
+                            Button("Manual Input") {
                                 showingManualInput = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "keyboard")
-                                        .font(.title3)
-                                    
-                                    Text("Enter Letters Manually")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                }
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .cornerRadius(12)
                             }
+                            .buttonStyle(.borderedProminent)
                             
-                            Button(action: {
+                            Button("Reveal All Words") {
                                 showingAllWords = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "eye")
-                                        .font(.title3)
-                                    
-                                    Text("Show All Words")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                }
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .cornerRadius(12)
                             }
+                            .buttonStyle(.bordered)
                         }
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
-                        
-                    } else {
-                        // Error state
-                        VStack(spacing: 16) {
-                            Image(systemName: "exclamationmark.triangle")
-                                .font(.system(size: 50))
-                                .foregroundColor(.orange)
-                            
-                            Text("Unable to load puzzle")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            if let errorMessage = puzzleService.errorMessage {
-                                Text(errorMessage)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 20)
-                            }
-                            
-                            Button(action: {
-                                Task {
-                                    await puzzleService.fetchTodayPuzzle()
-                                }
-                            }) {
-                                Text("Try Again")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .cornerRadius(12)
-                            }
-                            .padding(.horizontal, 20)
-                        }
-                        .padding(.vertical, 40)
                     }
                 }
             }
@@ -156,45 +101,80 @@ struct TodayView: View {
                 AllWordsView()
                     .environmentObject(puzzleService)
             }
-        }
-        .onAppear {
-            if puzzleService.currentPuzzle == nil {
-                Task {
-                    await puzzleService.fetchTodayPuzzle()
+            .onAppear {
+                if puzzleService.currentPuzzle == nil {
+                    Task {
+                        await puzzleService.fetchTodayPuzzle()
+                    }
                 }
             }
         }
     }
+    
+    private func getHeaderTitle(for date: Date) -> String {
+        let calendar = Calendar.current
+        let today = Date()
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        
+        if calendar.isDate(date, inSameDayAs: today) {
+            return "Today's Puzzle"
+        } else if calendar.isDate(date, inSameDayAs: yesterday) {
+            return "Yesterday's Puzzle"
+        } else {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "EEEE"
+            let dayName = dateFormatter.string(from: date)
+            return "\(dayName)'s Puzzle"
+        }
+    }
+    
+    private func getFormattedDate(_ date: Date) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        return dateFormatter.string(from: date)
+    }
 }
 
 struct LetterDisplayView: View {
-    @EnvironmentObject var puzzleService: PuzzleService
+    let letters: [String]
+    let centerLetter: String
+    let puzzleDate: Date
     
     var body: some View {
         VStack(spacing: 16) {
-            Text("Today's Letters")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
+            Text(getLettersTitle(for: puzzleDate))
+                .font(.headline)
+                .foregroundColor(.secondary)
             
-            if let puzzle = puzzleService.currentPuzzle {
-                HStack(spacing: 8) {
-                    ForEach(puzzle.letters, id: \.self) { letter in
-                        LetterCircle(
-                            letter: letter,
-                            isCenter: letter == puzzle.centerLetter
-                        )
-                    }
+            HStack(spacing: 12) {
+                ForEach(letters, id: \.self) { letter in
+                    LetterCircle(
+                        letter: letter,
+                        isCenter: letter == centerLetter
+                    )
                 }
-            } else {
-                Text("Loading letters...")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
             }
         }
         .padding(20)
         .background(Color(.systemGray6))
         .cornerRadius(16)
+    }
+    
+    private func getLettersTitle(for date: Date) -> String {
+        let calendar = Calendar.current
+        let today = Date()
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        
+        if calendar.isDate(date, inSameDayAs: today) {
+            return "Today's Letters"
+        } else if calendar.isDate(date, inSameDayAs: yesterday) {
+            return "Yesterday's Letters"
+        } else {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "EEEE"
+            let dayName = dateFormatter.string(from: date)
+            return "\(dayName)'s Letters"
+        }
     }
 }
 
@@ -207,7 +187,6 @@ struct LetterCircle: View {
             Circle()
                 .fill(isCenter ? Color.yellow : Color.blue)
                 .frame(width: 44, height: 44)
-                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
             
             Text(letter)
                 .font(.title2)
@@ -218,29 +197,18 @@ struct LetterCircle: View {
 }
 
 struct StatsView: View {
-    @EnvironmentObject var puzzleService: PuzzleService
+    let puzzle: PuzzleData
     
     var body: some View {
         VStack(spacing: 16) {
-            Text("Puzzle Stats")
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
+            Text("Statistics")
+                .font(.headline)
+                .foregroundColor(.secondary)
             
-            if let puzzle = puzzleService.currentPuzzle {
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 12) {
-                    StatCard(title: "Total Words", value: "\(puzzle.totalWords)", color: .blue)
-                    StatCard(title: "Pangrams", value: "\(puzzle.totalPangrams)", color: .orange)
-                    StatCard(title: "Compound Words", value: "\(puzzle.totalCompoundWords)", color: .green)
-                }
-            } else {
-                Text("Loading stats...")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                StatCard(title: "Total Words", value: "\(puzzle.totalWords)", color: .blue)
+                StatCard(title: "Pangrams", value: "\(puzzle.totalPangrams)", color: .orange)
+                StatCard(title: "Compound", value: "\(puzzle.totalCompoundWords)", color: .green)
             }
         }
         .padding(20)
@@ -257,25 +225,19 @@ struct StatCard: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(value)
-                .font(.title)
+                .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(color)
             
             Text(title)
                 .font(.caption)
-                .fontWeight(.medium)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
-}
-
-#Preview {
-    TodayView()
-        .environmentObject(PuzzleService())
 } 
