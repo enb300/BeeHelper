@@ -24,7 +24,13 @@ def load_dictionary():
         return dictionary
     except FileNotFoundError:
         print(f"Dictionary file not found: {DICTIONARY_FILE}")
-        return set()
+        # Create a basic dictionary with common words for fallback
+        basic_words = [
+            "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS", "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "TWO", "WAY", "WHO", "BOY", "DID", "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE"
+        ]
+        dictionary.update(basic_words)
+        print(f"Using fallback dictionary with {len(dictionary)} words")
+        return dictionary
 
 # Load dictionary at startup
 DICTIONARY = load_dictionary()
@@ -572,39 +578,50 @@ def compute_stats(words, letters):
 
 @app.route("/api/spelling-bee/today")
 def get_today_puzzle():
-    puzzle = get_todays_puzzle_data()
-    stats = compute_stats(puzzle["words"], puzzle["letters"])
-    return jsonify({
-        "date": puzzle["date"],
-        "center_letter": puzzle["center_letter"],
-        "letters": puzzle["letters"],
-        "words": puzzle["words"],
-        "stats": stats,
-        "source": puzzle.get("source", "unknown")
-    })
+    try:
+        puzzle = get_todays_puzzle_data()
+        if not puzzle:
+            return jsonify({"error": "Could not fetch today's puzzle data"}), 500
+        
+        stats = compute_stats(puzzle["words"], puzzle["letters"])
+        return jsonify({
+            "date": puzzle["date"],
+            "center_letter": puzzle["center_letter"],
+            "letters": puzzle["letters"],
+            "words": puzzle["words"],
+            "stats": stats,
+            "source": puzzle.get("source", "unknown")
+        })
+    except Exception as e:
+        print(f"Error in get_today_puzzle: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/api/spelling-bee/yesterday")
 def get_yesterday_puzzle():
     """Get yesterday's puzzle data"""
-    yesterday = date.today() - timedelta(days=1)
-    puzzle_info = get_puzzle_data_for_date(yesterday)
-    
-    if not puzzle_info:
-        return jsonify({"error": "Could not fetch yesterday's puzzle"}), 404
-    
-    letters = puzzle_info["letters"]
-    center_letter = puzzle_info["center_letter"]
-    words = generate_spelling_bee_words(letters, center_letter)
-    stats = compute_stats(words, letters)
-    
-    return jsonify({
-        "date": yesterday.strftime("%Y-%m-%d"),
-        "center_letter": center_letter,
-        "letters": letters,
-        "words": words,
-        "stats": stats,
-        "source": puzzle_info.get("source", "unknown")
-    })
+    try:
+        yesterday = date.today() - timedelta(days=1)
+        puzzle_info = get_puzzle_data_for_date(yesterday)
+        
+        if not puzzle_info:
+            return jsonify({"error": "Could not fetch yesterday's puzzle"}), 404
+        
+        letters = puzzle_info["letters"]
+        center_letter = puzzle_info["center_letter"]
+        words = generate_spelling_bee_words(letters, center_letter)
+        stats = compute_stats(words, letters)
+        
+        return jsonify({
+            "date": yesterday.strftime("%Y-%m-%d"),
+            "center_letter": center_letter,
+            "letters": letters,
+            "words": words,
+            "stats": stats,
+            "source": puzzle_info.get("source", "unknown")
+        })
+    except Exception as e:
+        print(f"Error in get_yesterday_puzzle: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/api/spelling-bee/archive/<date_str>")
 def get_archive_puzzle(date_str):
