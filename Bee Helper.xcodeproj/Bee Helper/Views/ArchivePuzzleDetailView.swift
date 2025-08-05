@@ -25,12 +25,47 @@ struct ArchivePuzzleDetailView: View {
                     .padding(.top, 20)
                     
                     // Letters display
-                    LetterDisplayView(letters: puzzle.letters, centerLetter: puzzle.centerLetter, puzzleDate: puzzle.date)
-                        .padding(.horizontal, 20)
+                    VStack(spacing: 16) {
+                        Text(getLettersTitle(for: puzzle.date))
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        
+                        HStack(spacing: 12) {
+                            ForEach(puzzle.letters, id: \.self) { letter in
+                                ZStack {
+                                    Circle()
+                                        .fill(letter == puzzle.centerLetter ? Color.yellow : Color.blue)
+                                        .frame(width: 44, height: 44)
+                                    
+                                    Text(letter)
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        }
+                    }
+                    .padding(20)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 20)
                     
                     // Stats
-                    StatsView(puzzle: puzzle)
-                        .padding(.horizontal, 20)
+                    VStack(spacing: 16) {
+                        Text("Statistics")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
+                            StatCard(title: "Total Words", value: "\(puzzle.totalWords)", color: .blue)
+                            StatCard(title: "Pangrams", value: "\(puzzle.totalPangrams)", color: .orange)
+                            StatCard(title: "Compound", value: "\(puzzle.totalCompoundWords)", color: .green)
+                        }
+                    }
+                    .padding(20)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 20)
                     
                     // Word count table
                     WordCountTableView()
@@ -95,22 +130,53 @@ struct ArchivePuzzleDetailView: View {
         dateFormatter.dateStyle = .medium
         return dateFormatter.string(from: date)
     }
+    
+    private func getLettersTitle(for date: Date) -> String {
+        let calendar = Calendar.current
+        let today = Date()
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        
+        if calendar.isDate(date, inSameDayAs: today) {
+            return "Today's Letters"
+        } else if calendar.isDate(date, inSameDayAs: yesterday) {
+            return "Yesterday's Letters"
+        } else {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "EEEE"
+            let dayName = dateFormatter.string(from: date)
+            return "\(dayName)'s Letters"
+        }
+    }
 }
 
-struct ArchivePuzzleDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        let samplePuzzle = PuzzleData(
-            date: Date(),
-            centerLetter: "E",
-            letters: ["A", "E", "I", "L", "N", "O", "T"],
-            words: ["ALIEN", "ALINE", "ANILE", "ANIL", "ANTI", "ELAIN", "ELAN", "ENTIA", "ETNA", "INLET", "INTEL", "LATEN", "LEANT", "LENTI", "LIANE", "LIEN", "LINE", "LINEN", "LINT", "NAIL", "NEAT", "NITE", "TAIL", "TALE", "TEAL", "TEIL", "TELA", "TILE", "TINE"],
-            totalWords: 29,
-            totalPangrams: 0,
-            totalCompoundWords: 0,
-            source: "Sample"
-        )
-        
-        ArchivePuzzleDetailView(puzzle: samplePuzzle)
-            .environmentObject(PuzzleService())
+struct StatCard: View {
+    let title: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text(value)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
     }
+}
+
+#Preview {
+    let samplePuzzle = PuzzleData(
+        date: Date(),
+        letters: ["A", "B", "C", "D", "E", "F", "G"],
+        centerLetter: "A",
+        words: ["ABC", "DEF", "GHI"]
+    )
+    
+    return ArchivePuzzleDetailView(puzzle: samplePuzzle)
+        .environmentObject(PuzzleService())
 } 

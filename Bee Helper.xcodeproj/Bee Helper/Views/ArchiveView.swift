@@ -55,76 +55,76 @@ struct ArchiveView: View {
                 .padding(.horizontal)
                 
                 // Current puzzle display
+                Text("🔥 DEBUG: puzzleService.currentPuzzle is \(puzzleService.currentPuzzle == nil ? "nil" : "not nil") 🔥")
+                    .foregroundColor(.red)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding()
+                    .background(Color.yellow)
+                    .cornerRadius(8)
+                
                 if let puzzle = puzzleService.currentPuzzle {
                     VStack(spacing: 20) {
-                        // Header with dynamic title and date
-                        VStack(spacing: 8) {
-                            Text(getHeaderTitle(for: puzzle.date))
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.primary)
+                        // Puzzle content
+                        VStack(spacing: 20) {
+                            // Header with dynamic title and date
+                            VStack(spacing: 8) {
+                                Text(getHeaderTitle(for: puzzle.date))
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+                                
+                                Text(getFormattedDate(puzzle.date))
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
                             
-                            Text(getFormattedDate(puzzle.date))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // Letters display
-                        HStack(spacing: 12) {
-                            ForEach(puzzle.letters, id: \.self) { letter in
-                                LetterCircle(
-                                    letter: letter,
-                                    isCenter: letter == puzzle.centerLetter
-                                )
+                            // Letters display
+                            HStack(spacing: 12) {
+                                ForEach(puzzle.letters, id: \.self) { letter in
+                                    LetterCircle(
+                                        letter: letter,
+                                        isCenter: letter == puzzle.centerLetter
+                                    )
+                                }
                             }
-                        }
-                        
-                        // Stats
-                        HStack(spacing: 20) {
-                            StatItem(title: "Words", value: "\(puzzle.totalWords)")
-                            StatItem(title: "Pangrams", value: "\(puzzle.totalPangrams)")
-                            StatItem(title: "Compound", value: "\(puzzle.totalCompoundWords)")
-                        }
-                        
-                        // Navigation arrows
-                        HStack(spacing: 30) {
-                            Button(action: {
-                                navigateToPreviousDay()
-                            }) {
-                                Image(systemName: "chevron.left.circle.fill")
-                                    .font(.system(size: 44))
-                                    .foregroundColor(.blue)
-                            }
-                            .disabled(puzzleService.isLoading)
                             
-                            Button(action: {
-                                navigateToNextDay()
-                            }) {
-                                Image(systemName: "chevron.right.circle.fill")
-                                    .font(.system(size: 44))
-                                    .foregroundColor(.blue)
+                            // Stats
+                            HStack(spacing: 20) {
+                                StatItem(title: "Words", value: "\(puzzle.totalWords)")
+                                StatItem(title: "Pangrams", value: "\(puzzle.totalPangrams)")
+                                StatItem(title: "Compound", value: "\(puzzle.totalCompoundWords)")
                             }
-                            .disabled(puzzleService.isLoading)
                         }
-                        .padding(.top, 20)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(16)
+                        .padding(.horizontal)
                         
-                        // Hint text
-                        Text("Tap to view full puzzle")
+                        // DEBUG: Add a simple text to see if this section is being rendered
+                        Text("DEBUG: Button should be below this text")
+                            .foregroundColor(.red)
                             .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.top, 8)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(16)
-                    .padding(.horizontal)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
-                    )
-                    .onTapGesture {
-                        // Navigate to detail view
-                        showingPuzzleDetail = true
+                        
+                        // Simple VIEW PUZZLE button
+                        Button(action: {
+                            print("VIEW PUZZLE button tapped!")
+                            showingPuzzleDetail = true
+                        }) {
+                            HStack {
+                                Image(systemName: "eye.fill")
+                                    .font(.title2)
+                                Text("VIEW PUZZLE")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.red) // Changed to red to make it more obvious
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
                     }
                 } else {
                     VStack(spacing: 15) {

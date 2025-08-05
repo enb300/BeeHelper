@@ -9,6 +9,16 @@ struct TodayView: View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 20) {
+                    // DEBUG: Add obvious debug text at the top
+                    Text("🔥 DEBUG: TodayView is loading! 🔥")
+                        .foregroundColor(.red)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .padding()
+                        .background(Color.yellow)
+                        .cornerRadius(8)
+                    
+
                     // Header with dynamic title and date
                     if let puzzle = puzzleService.currentPuzzle {
                         VStack(spacing: 8) {
@@ -56,12 +66,12 @@ struct TodayView: View {
                     }
                     
                     // Letters display
-                    if let puzzle = puzzleService.currentPuzzle {
-                        LetterDisplayView(letters: puzzle.letters, centerLetter: puzzle.centerLetter, puzzleDate: puzzle.date)
+                    if puzzleService.currentPuzzle != nil {
+                        LetterDisplayView(letters: puzzleService.currentPuzzle!.letters, centerLetter: puzzleService.currentPuzzle!.centerLetter, puzzleDate: puzzleService.currentPuzzle!.date)
                             .padding(.horizontal, 20)
                         
                         // Stats
-                        StatsView(puzzle: puzzle)
+                        StatsView(puzzle: puzzleService.currentPuzzle!)
                             .padding(.horizontal, 20)
                         
                         // Word count table

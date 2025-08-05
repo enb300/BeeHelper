@@ -1,7 +1,7 @@
 import Foundation
 
 struct PuzzleData: Codable, Identifiable {
-    let id = UUID()
+    let id: UUID
     let date: Date
     let letters: [String]
     let centerLetter: String
@@ -36,6 +36,7 @@ struct PuzzleData: Codable, Identifiable {
     }
 
     init(date: Date, letters: [String], centerLetter: String, words: [String]) {
+        self.id = UUID()
         self.date = date
         self.letters = letters
         self.centerLetter = centerLetter
