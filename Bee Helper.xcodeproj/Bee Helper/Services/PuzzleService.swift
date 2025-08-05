@@ -22,7 +22,7 @@ class PuzzleService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let apiBaseURL = "http://192.168.4.28:5001"
+    private let apiBaseURL = "https://bee-helper-api.onrender.com"
 
     init() {
         Task { await fetchTodayPuzzle() }
