@@ -34,7 +34,7 @@ class DictionaryService: ObservableObject {
             let wordUpper = word.uppercased()
             
             // Check if word uses only the given letters
-            let wordLetters = Set(wordUpper)
+            let wordLetters = Set(wordUpper.map { String($0) })
             if !wordLetters.isSubset(of: letterSet) {
                 continue
             }
