@@ -674,8 +674,10 @@ def get_today_puzzle():
         cache_puzzle(today_str, puzzle)
         
         stats = compute_stats(puzzle["words"], puzzle["letters"])
+        # Use the actual puzzle date, not today's date
+        puzzle_date = puzzle["date"]
         return jsonify({
-            "date": puzzle["date"],
+            "date": puzzle_date,
             "centerLetter": puzzle["center_letter"],
             "letters": puzzle["letters"],
             "words": puzzle["words"],
@@ -900,7 +902,7 @@ def get_available_sources():
         ],
         "endpoints": [
             "/api/spelling-bee/today",
-            "/api/spelling-bee/yesterday",
+            "/api/spelling-bee/yesterday", 
             "/api/spelling-bee/archive/<date>",
             "/api/spelling-bee/generate?letters=ABC&center=A",
             "/api/spelling-bee/letters",
@@ -915,6 +917,10 @@ def hello():
 
 @app.route("/test")
 def test():
+    return jsonify({"status": "ok", "message": "API is working"})
+
+@app.route("/api/spelling-bee/test")
+def test_api():
     return jsonify({"status": "ok", "message": "API is working"})
 
 @app.route("/api/spelling-bee/test-ios")
@@ -936,4 +942,4 @@ def test_ios_format():
 if __name__ == "__main__":
     import os
     port = int(os.environ.get('PORT', 5001))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=True, host='0.0.0.0', port=port) 
