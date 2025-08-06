@@ -11,7 +11,7 @@ struct SpellingBeeResponse: Codable {
     
     enum CodingKeys: String, CodingKey {
         case date, letters, words, stats, source
-        case centerLetter = "center_letter"
+        case centerLetter = "centerLetter"
     }
 }
 
@@ -23,9 +23,9 @@ struct Stats: Codable {
     let wordCountByLetter: [String: Int]?
     
     enum CodingKeys: String, CodingKey {
-        case totalWords = "total_words"
-        case totalPangrams = "pangram_count"
-        case totalCompoundWords = "compound_count"
+        case totalWords = "totalWords"
+        case totalPangrams = "totalPangrams"
+        case totalCompoundWords = "totalCompoundWords"
         case prefixTally2 = "prefix_tally_2"
         case wordCountByLetter = "word_count_by_letter"
     }
