@@ -33,7 +33,7 @@ struct NetworkStatusView: View {
     private func checkConnection() {
         Task {
             do {
-                let url = URL(string: "https://bee-helper-api.onrender.com/api/spelling-bee/test")!
+                let url = URL(string: "http://localhost:5001/api/spelling-bee/test")!
                 let (_, response) = try await URLSession.shared.data(from: url)
                 
                 if let httpResponse = response as? HTTPURLResponse {

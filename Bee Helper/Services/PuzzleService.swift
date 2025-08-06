@@ -38,7 +38,7 @@ class PuzzleService: ObservableObject {
     @Published var errorMessage: String?
     @Published var cacheStatus: CacheStatus?
 
-    private let apiBaseURL = "https://bee-helper-api.onrender.com"
+    private let apiBaseURL = "http://localhost:5001"
     
     struct CacheStatus: Codable {
         let cachedPuzzles: Int
