@@ -20,6 +20,7 @@ HOSTED_DICTIONARY_FILES = [
 ]
 CACHE_DIR = Path("cache")
 PUZZLE_CACHE_FILE = CACHE_DIR / "puzzle_cache.pkl"
+PUZZLE_DATABASE_FILE = CACHE_DIR / "puzzle_database.json"
 
 # Ensure cache directory exists
 CACHE_DIR.mkdir(exist_ok=True)
@@ -78,6 +79,39 @@ def save_puzzle_cache(cache):
 # Load dictionary and cache at startup
 DICTIONARY = load_dictionary()
 PUZZLE_CACHE = load_puzzle_cache()
+
+def load_puzzle_database():
+    """Load permanent puzzle database from JSON file"""
+    try:
+        if PUZZLE_DATABASE_FILE.exists():
+            with open(PUZZLE_DATABASE_FILE, 'r') as f:
+                database = json.load(f)
+                print(f"Loaded {len(database)} puzzles from permanent database")
+                return database
+    except Exception as e:
+        print(f"Error loading puzzle database: {e}")
+    return {}
+
+def save_puzzle_database(database):
+    """Save puzzle database to JSON file"""
+    try:
+        with open(PUZZLE_DATABASE_FILE, 'w') as f:
+            json.dump(database, f, indent=2)
+        print(f"Saved {len(database)} puzzles to permanent database")
+    except Exception as e:
+        print(f"Error saving puzzle database: {e}")
+
+def get_puzzle_from_database(date_str):
+    """Get puzzle data from permanent database"""
+    return PUZZLE_DATABASE.get(date_str)
+
+def save_puzzle_to_database(date_str, puzzle_data):
+    """Save puzzle data to permanent database"""
+    PUZZLE_DATABASE[date_str] = puzzle_data
+    save_puzzle_database(PUZZLE_DATABASE)
+
+# Load permanent puzzle database
+PUZZLE_DATABASE = load_puzzle_database()
 
 def get_cached_puzzle(date_str):
     """Get puzzle data from cache if available"""
@@ -212,10 +246,10 @@ def scrape_word_tips_yesterday():
                     "source": "word.tips (yesterday)"
                 }
         
-        # Hardcoded fallback based on yesterday's actual puzzle
-        print("Using hardcoded yesterday's letters from search results")
+        # Hardcoded fallback based on yesterday's actual puzzle (Aug 4, 2025)
+        print("Using hardcoded yesterday's letters from word.tips")
         return {
-            "letters": ["A", "E", "G", "L", "N", "O", "Y"],
+            "letters": ["G", "U", "I", "L", "T", "E", "D"],
             "center_letter": "E",
             "source": "word.tips (yesterday, hardcoded)"
         }
@@ -224,7 +258,7 @@ def scrape_word_tips_yesterday():
         print(f"Error scraping word.tips yesterday: {e}")
         # Return fallback data instead of None
         return {
-            "letters": ["A", "E", "G", "L", "N", "O", "Y"],
+            "letters": ["G", "U", "I", "L", "T", "E", "D"],
             "center_letter": "E",
             "source": "word.tips (yesterday, error fallback)"
         }
@@ -395,10 +429,20 @@ def get_puzzle_data_for_date(target_date=None):
     if target_date is None:
         target_date = date.today()
     
-    # Check cache first
-    cached_puzzle = get_cached_puzzle(target_date.strftime("%Y-%m-%d"))
+    date_str = target_date.strftime("%Y-%m-%d")
+    
+    # Check permanent database first
+    database_puzzle = get_puzzle_from_database(date_str)
+    if database_puzzle:
+        print(f"Found puzzle for {date_str} in permanent database")
+        return database_puzzle
+    
+    # Check cache second
+    cached_puzzle = get_cached_puzzle(date_str)
     if cached_puzzle:
-        print(f"Using cached puzzle for {target_date.strftime('%Y-%m-%d')}")
+        print(f"Using cached puzzle for {date_str}")
+        # Save to permanent database
+        save_puzzle_to_database(date_str, cached_puzzle)
         return cached_puzzle
 
     # Try multiple sources in order of preference
@@ -416,7 +460,9 @@ def get_puzzle_data_for_date(target_date=None):
             result = source_func()
             if result:
                 print(f"Successfully got data from {source_name}")
-                cache_puzzle(target_date.strftime("%Y-%m-%d"), result)
+                # Save to both cache and permanent database
+                cache_puzzle(date_str, result)
+                save_puzzle_to_database(date_str, result)
                 return result
         except Exception as e:
             print(f"Error with {source_name}: {e}")
@@ -434,7 +480,7 @@ def get_fallback_data(target_date):
         }
     elif target_date == date.today() - timedelta(days=1):
         return {
-            "letters": ["A", "E", "G", "L", "N", "O", "Y"],
+            "letters": ["G", "U", "I", "L", "T", "E", "D"],
             "center_letter": "E",
             "source": "fallback (yesterday)"
         }
@@ -658,10 +704,14 @@ def get_today_puzzle():
             stats = compute_stats(cached_puzzle["words"], cached_puzzle["letters"])
             return jsonify({
                 "date": cached_puzzle["date"],
-                "center_letter": cached_puzzle["center_letter"],
+                "centerLetter": cached_puzzle["center_letter"],
                 "letters": cached_puzzle["letters"],
                 "words": cached_puzzle["words"],
-                "stats": stats,
+                "stats": {
+                    "totalWords": stats["total_words"],
+                    "totalPangrams": stats["pangram_count"],
+                    "totalCompoundWords": stats["compound_count"]
+                },
                 "source": cached_puzzle.get("source", "cached")
             })
         
@@ -699,17 +749,39 @@ def get_yesterday_puzzle():
         yesterday = date.today() - timedelta(days=1)
         yesterday_str = yesterday.strftime("%Y-%m-%d")
         
-        # Check cache first
+        # Check permanent database first
+        database_puzzle = get_puzzle_from_database(yesterday_str)
+        if database_puzzle:
+            print(f"Returning database puzzle for {yesterday_str}")
+            stats = compute_stats(database_puzzle["words"], database_puzzle["letters"])
+            return jsonify({
+                "date": database_puzzle["date"],
+                "centerLetter": database_puzzle["center_letter"],
+                "letters": database_puzzle["letters"],
+                "words": database_puzzle["words"],
+                "stats": {
+                    "totalWords": stats["total_words"],
+                    "totalPangrams": stats["pangram_count"],
+                    "totalCompoundWords": stats["compound_count"]
+                },
+                "source": database_puzzle.get("source", "database")
+            })
+        
+        # Check cache second
         cached_puzzle = get_cached_puzzle(yesterday_str)
         if cached_puzzle:
             print(f"Returning cached puzzle for {yesterday_str}")
             stats = compute_stats(cached_puzzle["words"], cached_puzzle["letters"])
             return jsonify({
                 "date": cached_puzzle["date"],
-                "center_letter": cached_puzzle["center_letter"],
+                "centerLetter": cached_puzzle["center_letter"],
                 "letters": cached_puzzle["letters"],
                 "words": cached_puzzle["words"],
-                "stats": stats,
+                "stats": {
+                    "totalWords": stats["total_words"],
+                    "totalPangrams": stats["pangram_count"],
+                    "totalCompoundWords": stats["compound_count"]
+                },
                 "source": cached_puzzle.get("source", "cached")
             })
         
@@ -766,10 +838,14 @@ def get_archive_puzzle(date_str):
         stats = compute_stats(cached_puzzle["words"], cached_puzzle["letters"])
         return jsonify({
             "date": cached_puzzle["date"],
-            "center_letter": cached_puzzle["center_letter"],
+            "centerLetter": cached_puzzle["center_letter"],
             "letters": cached_puzzle["letters"],
             "words": cached_puzzle["words"],
-            "stats": stats,
+            "stats": {
+                "totalWords": stats["total_words"],
+                "totalPangrams": stats["pangram_count"],
+                "totalCompoundWords": stats["compound_count"]
+            },
             "source": cached_puzzle.get("source", "cached")
         })
     
@@ -919,6 +995,10 @@ def hello():
 def test():
     return jsonify({"status": "ok", "message": "API is working"})
 
+@app.route("/api/spelling-bee/test")
+def test_api():
+    return jsonify({"status": "ok", "message": "API is working"})
+
 @app.route("/api/spelling-bee/test-ios")
 def test_ios_format():
     """Test endpoint that returns data in the exact format iOS expects"""
@@ -933,6 +1013,50 @@ def test_ios_format():
             "totalCompoundWords": 0
         },
         "source": "test"
+    })
+
+@app.route("/api/spelling-bee/add-puzzle", methods=['POST'])
+def add_puzzle_to_database():
+    """Manually add puzzle data to the permanent database"""
+    try:
+        data = request.get_json()
+        date_str = data.get('date')
+        letters = data.get('letters')
+        center_letter = data.get('center_letter')
+        words = data.get('words', [])
+        source = data.get('source', 'manual')
+        
+        if not date_str or not letters or not center_letter:
+            return jsonify({"error": "Missing required fields: date, letters, center_letter"}), 400
+        
+        puzzle_data = {
+            "date": date_str,
+            "letters": letters,
+            "center_letter": center_letter,
+            "words": words,
+            "source": source
+        }
+        
+        save_puzzle_to_database(date_str, puzzle_data)
+        
+        return jsonify({
+            "message": f"Puzzle for {date_str} added to database",
+            "puzzle": puzzle_data
+        })
+        
+    except Exception as e:
+        return jsonify({"error": f"Error adding puzzle: {str(e)}"}), 500
+
+@app.route("/api/spelling-bee/database")
+def get_database_status():
+    """Get information about the permanent puzzle database"""
+    database_dates = list(PUZZLE_DATABASE.keys())
+    database_dates.sort(reverse=True)
+    
+    return jsonify({
+        "total_puzzles": len(PUZZLE_DATABASE),
+        "database_dates": database_dates[:20],  # Show last 20 dates
+        "database_file": str(PUZZLE_DATABASE_FILE)
     })
 
 if __name__ == "__main__":
