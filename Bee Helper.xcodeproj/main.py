@@ -5,35 +5,88 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import json
+import pickle
+from pathlib import Path
 
 app = Flask(__name__)
 
-# Load the TWL06 dictionary
-DICTIONARY_FILE = "/Users/emmabrown/Downloads/twl06.txt"
+# Load the comprehensive dictionary
+DICTIONARY_FILE = "/Users/emmabrown/Downloads/dictionary/filtered_4plus_7letters.txt"
+# For hosted deployment, try alternative paths
+HOSTED_DICTIONARY_FILES = [
+    "filtered_4plus_7letters.txt",  # Local copy in project directory
+    "/app/filtered_4plus_7letters.txt",  # Render deployment path
+    "/Users/emmabrown/Downloads/dictionary/filtered_4plus_7letters.txt"  # Local development path
+]
+CACHE_DIR = Path("cache")
+PUZZLE_CACHE_FILE = CACHE_DIR / "puzzle_cache.pkl"
+
+# Ensure cache directory exists
+CACHE_DIR.mkdir(exist_ok=True)
 
 def load_dictionary():
-    """Load the TWL06 dictionary into a set for fast lookup"""
+    """Load the comprehensive dictionary into a set for fast lookup"""
     dictionary = set()
-    try:
-        with open(DICTIONARY_FILE, 'r') as f:
-            for line in f:
-                word = line.strip().upper()
-                if word:  # Skip empty lines
-                    dictionary.add(word)
-        print(f"Loaded {len(dictionary)} words from dictionary")
-        return dictionary
-    except FileNotFoundError:
-        print(f"Dictionary file not found: {DICTIONARY_FILE}")
-        # Create a basic dictionary with common words for fallback
-        basic_words = [
-            "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS", "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "TWO", "WAY", "WHO", "BOY", "DID", "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE"
-        ]
-        dictionary.update(basic_words)
-        print(f"Using fallback dictionary with {len(dictionary)} words")
-        return dictionary
+    
+    # Try multiple dictionary file paths
+    for dict_file in HOSTED_DICTIONARY_FILES:
+        try:
+            with open(dict_file, 'r') as f:
+                for line in f:
+                    word = line.strip().upper()
+                    if word and len(word) >= 4:  # Skip empty lines and short words
+                        dictionary.add(word)
+            print(f"Loaded {len(dictionary)} words from comprehensive dictionary at {dict_file}")
+            return dictionary
+        except FileNotFoundError:
+            print(f"Dictionary file not found: {dict_file}")
+            continue
+        except Exception as e:
+            print(f"Error reading dictionary file {dict_file}: {e}")
+            continue
+    
+    # If no dictionary file found, create a basic fallback
+    print("No dictionary file found, using fallback dictionary")
+    basic_words = [
+        "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS", "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "TWO", "WAY", "WHO", "BOY", "DID", "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE"
+    ]
+    dictionary.update(basic_words)
+    print(f"Using fallback dictionary with {len(dictionary)} words")
+    return dictionary
 
-# Load dictionary at startup
+def load_puzzle_cache():
+    """Load cached puzzle data"""
+    try:
+        if PUZZLE_CACHE_FILE.exists():
+            with open(PUZZLE_CACHE_FILE, 'rb') as f:
+                cache = pickle.load(f)
+                print(f"Loaded {len(cache)} cached puzzles")
+                return cache
+    except Exception as e:
+        print(f"Error loading cache: {e}")
+    return {}
+
+def save_puzzle_cache(cache):
+    """Save puzzle data to cache"""
+    try:
+        with open(PUZZLE_CACHE_FILE, 'wb') as f:
+            pickle.dump(cache, f)
+        print(f"Saved {len(cache)} puzzles to cache")
+    except Exception as e:
+        print(f"Error saving cache: {e}")
+
+# Load dictionary and cache at startup
 DICTIONARY = load_dictionary()
+PUZZLE_CACHE = load_puzzle_cache()
+
+def get_cached_puzzle(date_str):
+    """Get puzzle data from cache if available"""
+    return PUZZLE_CACHE.get(date_str)
+
+def cache_puzzle(date_str, puzzle_data):
+    """Cache puzzle data for future use"""
+    PUZZLE_CACHE[date_str] = puzzle_data
+    save_puzzle_cache(PUZZLE_CACHE)
 
 def scrape_word_tips_today():
     """Scrape today's NYT Spelling Bee letters from word.tips"""
@@ -342,6 +395,12 @@ def get_puzzle_data_for_date(target_date=None):
     if target_date is None:
         target_date = date.today()
     
+    # Check cache first
+    cached_puzzle = get_cached_puzzle(target_date.strftime("%Y-%m-%d"))
+    if cached_puzzle:
+        print(f"Using cached puzzle for {target_date.strftime('%Y-%m-%d')}")
+        return cached_puzzle
+
     # Try multiple sources in order of preference
     sources = [
         ("github.com/tedmiston/spelling-bee-answers", lambda: fetch_github_archive(target_date)),
@@ -357,6 +416,7 @@ def get_puzzle_data_for_date(target_date=None):
             result = source_func()
             if result:
                 print(f"Successfully got data from {source_name}")
+                cache_puzzle(target_date.strftime("%Y-%m-%d"), result)
                 return result
         except Exception as e:
             print(f"Error with {source_name}: {e}")
@@ -589,9 +649,29 @@ def compute_stats(words, letters):
 @app.route("/api/spelling-bee/today")
 def get_today_puzzle():
     try:
+        today_str = date.today().strftime("%Y-%m-%d")
+        
+        # Check cache first
+        cached_puzzle = get_cached_puzzle(today_str)
+        if cached_puzzle:
+            print(f"Returning cached puzzle for {today_str}")
+            stats = compute_stats(cached_puzzle["words"], cached_puzzle["letters"])
+            return jsonify({
+                "date": cached_puzzle["date"],
+                "center_letter": cached_puzzle["center_letter"],
+                "letters": cached_puzzle["letters"],
+                "words": cached_puzzle["words"],
+                "stats": stats,
+                "source": cached_puzzle.get("source", "cached")
+            })
+        
+        # Fetch fresh data if not cached
         puzzle = get_todays_puzzle_data()
         if not puzzle:
             return jsonify({"error": "Could not fetch today's puzzle data"}), 500
+        
+        # Cache the result
+        cache_puzzle(today_str, puzzle)
         
         stats = compute_stats(puzzle["words"], puzzle["letters"])
         return jsonify({
@@ -611,6 +691,23 @@ def get_yesterday_puzzle():
     """Get yesterday's puzzle data"""
     try:
         yesterday = date.today() - timedelta(days=1)
+        yesterday_str = yesterday.strftime("%Y-%m-%d")
+        
+        # Check cache first
+        cached_puzzle = get_cached_puzzle(yesterday_str)
+        if cached_puzzle:
+            print(f"Returning cached puzzle for {yesterday_str}")
+            stats = compute_stats(cached_puzzle["words"], cached_puzzle["letters"])
+            return jsonify({
+                "date": cached_puzzle["date"],
+                "center_letter": cached_puzzle["center_letter"],
+                "letters": cached_puzzle["letters"],
+                "words": cached_puzzle["words"],
+                "stats": stats,
+                "source": cached_puzzle.get("source", "cached")
+            })
+        
+        # Fetch fresh data if not cached
         puzzle_info = get_puzzle_data_for_date(yesterday)
         
         if not puzzle_info:
@@ -621,8 +718,19 @@ def get_yesterday_puzzle():
         words = generate_spelling_bee_words(letters, center_letter)
         stats = compute_stats(words, letters)
         
+        puzzle_data = {
+            "date": yesterday_str,
+            "center_letter": center_letter,
+            "letters": letters,
+            "words": words,
+            "source": puzzle_info.get("source", "unknown")
+        }
+        
+        # Cache the result
+        cache_puzzle(yesterday_str, puzzle_data)
+        
         return jsonify({
-            "date": yesterday.strftime("%Y-%m-%d"),
+            "date": yesterday_str,
             "center_letter": center_letter,
             "letters": letters,
             "words": words,
@@ -641,6 +749,21 @@ def get_archive_puzzle(date_str):
     except ValueError:
         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
     
+    # Check cache first
+    cached_puzzle = get_cached_puzzle(date_str)
+    if cached_puzzle:
+        print(f"Returning cached puzzle for {date_str}")
+        stats = compute_stats(cached_puzzle["words"], cached_puzzle["letters"])
+        return jsonify({
+            "date": cached_puzzle["date"],
+            "center_letter": cached_puzzle["center_letter"],
+            "letters": cached_puzzle["letters"],
+            "words": cached_puzzle["words"],
+            "stats": stats,
+            "source": cached_puzzle.get("source", "cached")
+        })
+    
+    # Fetch fresh data if not cached
     puzzle_info = get_puzzle_data_for_date(target_date)
     
     if not puzzle_info:
@@ -650,6 +773,17 @@ def get_archive_puzzle(date_str):
     center_letter = puzzle_info["center_letter"]
     words = generate_spelling_bee_words(letters, center_letter)
     stats = compute_stats(words, letters)
+    
+    puzzle_data = {
+        "date": date_str,
+        "center_letter": center_letter,
+        "letters": letters,
+        "words": words,
+        "source": puzzle_info.get("source", "unknown")
+    }
+    
+    # Cache the result
+    cache_puzzle(date_str, puzzle_data)
     
     return jsonify({
         "date": date_str,
@@ -705,6 +839,19 @@ def get_today_letters():
         "source": puzzle_info.get("source", "unknown")
     })
 
+@app.route("/api/spelling-bee/cache")
+def get_cache_status():
+    """Get information about cached puzzles"""
+    cache_dates = list(PUZZLE_CACHE.keys())
+    cache_dates.sort(reverse=True)
+    
+    return jsonify({
+        "cached_puzzles": len(PUZZLE_CACHE),
+        "cache_dates": cache_dates[:10],  # Show last 10 cached dates
+        "dictionary_size": len(DICTIONARY),
+        "cache_file": str(PUZZLE_CACHE_FILE)
+    })
+
 @app.route("/api/spelling-bee/sources")
 def get_available_sources():
     """Get information about available data sources"""
@@ -734,8 +881,8 @@ def get_available_sources():
                 "url": "https://www.thewordfinder.com/spelling-bee-answers/"
             },
             {
-                "name": "TWL06 Dictionary",
-                "description": "Tournament Word List for word validation",
+                "name": "Comprehensive Dictionary",
+                "description": "Filtered 4+ letter words for word validation",
                 "type": "dictionary"
             }
         ],
@@ -745,7 +892,8 @@ def get_available_sources():
             "/api/spelling-bee/archive/<date>",
             "/api/spelling-bee/generate?letters=ABC&center=A",
             "/api/spelling-bee/letters",
-            "/api/spelling-bee/sources"
+            "/api/spelling-bee/sources",
+            "/api/spelling-bee/cache"
         ]
     })
 

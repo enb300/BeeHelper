@@ -21,11 +21,22 @@ class PuzzleService: ObservableObject {
     @Published var currentPuzzle: PuzzleData?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var cacheStatus: CacheStatus?
 
     private let apiBaseURL = "https://bee-helper-api.onrender.com"
+    
+    struct CacheStatus: Codable {
+        let cachedPuzzles: Int
+        let cacheDates: [String]
+        let dictionarySize: Int
+        let cacheFile: String
+    }
 
     init() {
-        Task { await fetchTodayPuzzle() }
+        Task { 
+            await fetchTodayPuzzle()
+            await fetchCacheStatus()
+        }
     }
 
     func fetchTodayPuzzle() async {
@@ -34,7 +45,14 @@ class PuzzleService: ObservableObject {
         
         do {
             let url = URL(string: "\(apiBaseURL)/api/spelling-bee/today")!
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode != 200 {
+                    throw URLError(.badServerResponse)
+                }
+            }
+            
             let response = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
             
             let dateFormatter = DateFormatter()
@@ -50,10 +68,29 @@ class PuzzleService: ObservableObject {
             )
         } catch {
             errorMessage = "Failed to fetch today's puzzle: \(error.localizedDescription)"
+            // Try fallback puzzle if network fails
             currentPuzzle = getTodayPuzzle()
         }
         
         isLoading = false
+    }
+    
+    func fetchCacheStatus() async {
+        do {
+            let url = URL(string: "\(apiBaseURL)/api/spelling-bee/cache")!
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode != 200 {
+                    return
+                }
+            }
+            
+            cacheStatus = try JSONDecoder().decode(CacheStatus.self, from: data)
+        } catch {
+            // Cache status is not critical, so we don't show errors
+            print("Could not fetch cache status: \(error)")
+        }
     }
 
     func fetchYesterdayPuzzle() async {
@@ -62,7 +99,14 @@ class PuzzleService: ObservableObject {
         
         do {
             let url = URL(string: "\(apiBaseURL)/api/spelling-bee/yesterday")!
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode != 200 {
+                    throw URLError(.badServerResponse)
+                }
+            }
+            
             let response = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
             
             let dateFormatter = DateFormatter()
@@ -93,7 +137,14 @@ class PuzzleService: ObservableObject {
         
         do {
             let url = URL(string: "\(apiBaseURL)/api/spelling-bee/archive/\(dateString)")!
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode != 200 {
+                    throw URLError(.badServerResponse)
+                }
+            }
+            
             let response = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
             
             let responseDate = dateFormatter.date(from: response.date) ?? date
