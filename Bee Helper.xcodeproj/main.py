@@ -697,7 +697,25 @@ def get_today_puzzle():
     try:
         today_str = date.today().strftime("%Y-%m-%d")
         
-        # Check cache first
+        # Check permanent database first
+        database_puzzle = get_puzzle_from_database(today_str)
+        if database_puzzle:
+            print(f"Returning database puzzle for {today_str}")
+            stats = compute_stats(database_puzzle["words"], database_puzzle["letters"])
+            return jsonify({
+                "date": database_puzzle["date"],
+                "centerLetter": database_puzzle["center_letter"],
+                "letters": database_puzzle["letters"],
+                "words": database_puzzle["words"],
+                "stats": {
+                    "totalWords": stats["total_words"],
+                    "totalPangrams": stats["pangram_count"],
+                    "totalCompoundWords": stats["compound_count"]
+                },
+                "source": database_puzzle.get("source", "database")
+            })
+        
+        # Check cache second
         cached_puzzle = get_cached_puzzle(today_str)
         if cached_puzzle:
             print(f"Returning cached puzzle for {today_str}")
