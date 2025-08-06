@@ -161,4 +161,4 @@ struct ArchivePuzzleDetailView: View {
     
     return ArchivePuzzleDetailView(puzzle: samplePuzzle)
         .environmentObject(PuzzleService())
-} 
+}

@@ -674,12 +674,18 @@ def get_today_puzzle():
         cache_puzzle(today_str, puzzle)
         
         stats = compute_stats(puzzle["words"], puzzle["letters"])
+        # Use the actual puzzle date, not today's date
+        puzzle_date = puzzle["date"]
         return jsonify({
-            "date": puzzle["date"],
-            "center_letter": puzzle["center_letter"],
+            "date": puzzle_date,
+            "centerLetter": puzzle["center_letter"],
             "letters": puzzle["letters"],
             "words": puzzle["words"],
-            "stats": stats,
+            "stats": {
+                "totalWords": stats["total_words"],
+                "totalPangrams": stats["pangram_count"],
+                "totalCompoundWords": stats["compound_count"]
+            },
             "source": puzzle.get("source", "unknown")
         })
     except Exception as e:
@@ -731,10 +737,14 @@ def get_yesterday_puzzle():
         
         return jsonify({
             "date": yesterday_str,
-            "center_letter": center_letter,
+            "centerLetter": center_letter,
             "letters": letters,
             "words": words,
-            "stats": stats,
+            "stats": {
+                "totalWords": stats["total_words"],
+                "totalPangrams": stats["pangram_count"],
+                "totalCompoundWords": stats["compound_count"]
+            },
             "source": puzzle_info.get("source", "unknown")
         })
     except Exception as e:
@@ -787,10 +797,14 @@ def get_archive_puzzle(date_str):
     
     return jsonify({
         "date": date_str,
-        "center_letter": center_letter,
+        "centerLetter": center_letter,
         "letters": letters,
         "words": words,
-        "stats": stats,
+        "stats": {
+            "totalWords": stats["total_words"],
+            "totalPangrams": stats["pangram_count"],
+            "totalCompoundWords": stats["compound_count"]
+        },
         "source": puzzle_info.get("source", "unknown")
     })
 
@@ -904,6 +918,22 @@ def hello():
 @app.route("/test")
 def test():
     return jsonify({"status": "ok", "message": "API is working"})
+
+@app.route("/api/spelling-bee/test-ios")
+def test_ios_format():
+    """Test endpoint that returns data in the exact format iOS expects"""
+    return jsonify({
+        "date": "2025-08-05",
+        "centerLetter": "N",
+        "letters": ["E", "N", "V", "C", "U", "O", "R"],
+        "words": ["CEROON", "COCOON", "CONCERN"],
+        "stats": {
+            "totalWords": 3,
+            "totalPangrams": 1,
+            "totalCompoundWords": 0
+        },
+        "source": "test"
+    })
 
 if __name__ == "__main__":
     import os

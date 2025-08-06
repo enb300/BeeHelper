@@ -27,4 +27,4 @@ struct RevealWordsButton: View {
 
 #Preview {
     RevealWordsButton(showingAllWords: .constant(false))
-} 
+}

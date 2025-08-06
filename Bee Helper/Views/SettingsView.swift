@@ -4,129 +4,114 @@ struct SettingsView: View {
     @AppStorage("autoFetchPuzzle") private var autoFetchPuzzle = true
     @AppStorage("showHints") private var showHints = false
     @AppStorage("dataSource") private var dataSource = "SBSolver"
-    
+    @EnvironmentObject var puzzleService: PuzzleService
     private let dataSources = ["SBSolver", "NYT", "Manual Only"]
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(spacing: 24) {
-                    // Header
-                    VStack(spacing: 12) {
-                        Image(systemName: "gear")
-                            .font(.system(size: 40))
-                            .foregroundColor(.blue)
-                        
-                        Text("Settings")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                        
-                        Text("Customize your Bee Helper experience")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Puzzle Settings
-                    SettingsSection(title: "Puzzle Settings") {
+                LazyVStack(spacing: 20) {
+                    // App Settings
+                    SettingsSection(title: "App Settings") {
                         SettingsRow(
-                            icon: "arrow.clockwise",
-                            title: "Auto-fetch Today's Puzzle",
-                            subtitle: "Automatically load the latest puzzle when app opens",
-                            isToggle: true,
-                            toggleValue: $autoFetchPuzzle
+                            title: "Auto-fetch Puzzle",
+                            subtitle: "Automatically load today's puzzle on app launch",
+                            isOn: $autoFetchPuzzle
                         )
                         
                         SettingsRow(
-                            icon: "lightbulb",
                             title: "Show Hints",
-                            subtitle: "Display helpful hints and suggestions",
-                            isToggle: true,
-                            toggleValue: $showHints
+                            subtitle: "Display helpful hints and tips",
+                            isOn: $showHints
                         )
                         
-                        SettingsRow(
-                            icon: "network",
-                            title: "Data Source",
-                            subtitle: "Choose where to fetch puzzle data from",
-                            isPicker: true,
-                            pickerValue: $dataSource,
-                            pickerOptions: dataSources
-                        )
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Data Source")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            
+                            Text("Choose where to fetch puzzle data from")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            Picker("Data Source", selection: $dataSource) {
+                                ForEach(dataSources, id: \.self) { source in
+                                    Text(source).tag(source)
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    
+                    // Data Source Information
+                    DataSourceInfoCard()
+                    
+                    // Cache Information
+                    if let cacheStatus = puzzleService.cacheStatus {
+                        SettingsSection(title: "Cache Information") {
+                            SettingsRow(
+                                title: "Cached Puzzles",
+                                subtitle: "\(cacheStatus.cachedPuzzles) puzzles stored locally",
+                                showToggle: false
+                            )
+                            
+                            SettingsRow(
+                                title: "Dictionary Size",
+                                subtitle: "\(cacheStatus.dictionarySize) words available",
+                                showToggle: false
+                            )
+                            
+                            if !cacheStatus.cacheDates.isEmpty {
+                                SettingsRow(
+                                    title: "Recent Cached Dates",
+                                    subtitle: cacheStatus.cacheDates.prefix(3).joined(separator: ", "),
+                                    showToggle: false
+                                )
+                            }
+                            
+                            Button(action: {
+                                Task {
+                                    await puzzleService.fetchCacheStatus()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Refresh Cache Status")
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                        }
                     }
                     
                     // App Information
                     SettingsSection(title: "App Information") {
                         SettingsRow(
-                            icon: "info.circle",
                             title: "Version",
                             subtitle: "1.0.0",
-                            isInfo: true
+                            showToggle: false
                         )
                         
                         SettingsRow(
-                            icon: "doc.text",
-                            title: "Privacy Policy",
-                            subtitle: "How we handle your data",
-                            isLink: true
+                            title: "Developer",
+                            subtitle: "Bee Helper Team",
+                            showToggle: false
                         )
                         
                         SettingsRow(
-                            icon: "questionmark.circle",
-                            title: "Help & Support",
-                            subtitle: "Get help with the app",
-                            isLink: true
+                            title: "Support",
+                            subtitle: "Contact us for help",
+                            showToggle: false
                         )
                     }
-                    
-                    // Data Sources Info
-                    SettingsSection(title: "Data Sources") {
-                        DataSourceInfoCard(
-                            name: "SBSolver.com",
-                            description: "Community-maintained Spelling Bee archive with reliable data",
-                            url: "https://www.sbsolver.com",
-                            isPrimary: dataSource == "SBSolver"
-                        )
-                        
-                        DataSourceInfoCard(
-                            name: "NYT Spelling Bee",
-                            description: "Official New York Times puzzle page",
-                            url: "https://www.nytimes.com/puzzles/spelling-bee",
-                            isPrimary: dataSource == "NYT"
-                        )
-                        
-                        DataSourceInfoCard(
-                            name: "Manual Entry",
-                            description: "Enter puzzle letters manually for offline use",
-                            url: nil,
-                            isPrimary: dataSource == "Manual Only"
-                        )
-                    }
-                    
-                    // About
-                    VStack(spacing: 16) {
-                        Text("About Bee Helper")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
-                        
-                        Text("Bee Helper is designed to enhance your NYT Spelling Bee experience. It provides statistics, word analysis, and helpful tools to improve your puzzle-solving skills.")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                    }
-                    .padding(20)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(16)
-                    .padding(.horizontal)
                 }
-                .padding(.vertical)
+                .padding()
             }
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -141,12 +126,10 @@ struct SettingsSection<Content: View>: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(alignment: .leading, spacing: 16) {
             Text(title)
                 .font(.headline)
-                .fontWeight(.semibold)
                 .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(spacing: 0) {
                 content
@@ -155,54 +138,34 @@ struct SettingsSection<Content: View>: View {
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
         }
-        .padding(.horizontal)
     }
 }
 
 struct SettingsRow: View {
-    let icon: String
     let title: String
     let subtitle: String
-    let isToggle: Bool
-    let isPicker: Bool
-    let isInfo: Bool
-    let isLink: Bool
-    let toggleValue: Binding<Bool>?
-    let pickerValue: Binding<String>?
-    let pickerOptions: [String]?
+    @State private var isOn: Bool = false
+    let showToggle: Bool
+    private let binding: Binding<Bool>?
     
-    init(
-        icon: String,
-        title: String,
-        subtitle: String,
-        isToggle: Bool = false,
-        isPicker: Bool = false,
-        isInfo: Bool = false,
-        isLink: Bool = false,
-        toggleValue: Binding<Bool>? = nil,
-        pickerValue: Binding<String>? = nil,
-        pickerOptions: [String]? = nil
-    ) {
-        self.icon = icon
+    init(title: String, subtitle: String, isOn: Binding<Bool>? = nil, showToggle: Bool = true) {
         self.title = title
         self.subtitle = subtitle
-        self.isToggle = isToggle
-        self.isPicker = isPicker
-        self.isInfo = isInfo
-        self.isLink = isLink
-        self.toggleValue = toggleValue
-        self.pickerValue = pickerValue
-        self.pickerOptions = pickerOptions
+        self.showToggle = showToggle
+        self.binding = isOn
+    }
+    
+    private var effectiveBinding: Binding<Bool> {
+        if let binding = binding {
+            return binding
+        } else {
+            return $isOn
+        }
     }
     
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundColor(.blue)
-                .frame(width: 24)
-            
-            VStack(alignment: .leading, spacing: 2) {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -215,75 +178,81 @@ struct SettingsRow: View {
             
             Spacer()
             
-            if isToggle, let toggleValue = toggleValue {
-                Toggle("", isOn: toggleValue)
+            if showToggle {
+                Toggle("", isOn: effectiveBinding)
                     .labelsHidden()
-            } else if isPicker, let pickerValue = pickerValue, let pickerOptions = pickerOptions {
-                Picker("", selection: pickerValue) {
-                    ForEach(pickerOptions, id: \.self) { option in
-                        Text(option).tag(option)
-                    }
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-            } else if isInfo || isLink {
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
 }
 
 struct DataSourceInfoCard: View {
-    let name: String
-    let description: String
-    let url: String?
-    let isPrimary: Bool
-    
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text(name)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                Image(systemName: "info.circle.fill")
+                    .foregroundColor(.blue)
+                Text("Data Sources")
+                    .font(.headline)
                     .foregroundColor(.primary)
-                
-                Spacer()
-                
-                if isPrimary {
-                    Text("Primary")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.blue)
-                        .cornerRadius(8)
-                }
             }
             
-            Text(description)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            if let url = url {
-                Link(destination: URL(string: url) ?? URL(string: "https://example.com")!) {
-                    Text("Visit Website")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.blue)
-                }
+            VStack(alignment: .leading, spacing: 12) {
+                DataSourceItem(
+                    name: "SBSolver",
+                    description: "Community-driven puzzle data",
+                    status: "Primary"
+                )
+                
+                DataSourceItem(
+                    name: "NYT",
+                    description: "New York Times official data",
+                    status: "Fallback"
+                )
+                
+                DataSourceItem(
+                    name: "Manual Only",
+                    description: "User-entered letters only",
+                    status: "Custom"
+                )
             }
         }
-        .padding()
+        .padding(20)
         .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .cornerRadius(16)
     }
 }
 
-#Preview {
-    SettingsView()
-} 
+struct DataSourceItem: View {
+    let name: String
+    let description: String
+    let status: String
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            Text(status)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(6)
+        }
+    }
+}

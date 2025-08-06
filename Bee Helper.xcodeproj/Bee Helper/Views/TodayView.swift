@@ -9,16 +9,31 @@ struct TodayView: View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 20) {
-                    // DEBUG: Add obvious debug text at the top
-                    Text("🔥 DEBUG: TodayView is loading! 🔥")
-                        .foregroundColor(.red)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .padding()
-                        .background(Color.yellow)
-                        .cornerRadius(8)
+                    // Network and cache status indicators
+                    VStack(spacing: 8) {
+                        NetworkStatusView()
+                        
+                        if let cacheStatus = puzzleService.cacheStatus {
+                            HStack {
+                                Image(systemName: "externaldrive.fill")
+                                    .foregroundColor(.green)
+                                Text("\(cacheStatus.cachedPuzzles) puzzles cached")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(cacheStatus.dictionarySize) words")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 20)
+                        }
+                    }
                     
-
+                    
                     // Header with dynamic title and date
                     if let puzzle = puzzleService.currentPuzzle {
                         VStack(spacing: 8) {
@@ -95,6 +110,21 @@ struct TodayView: View {
                             .buttonStyle(.bordered)
                         }
                         .padding(.horizontal, 20)
+                        
+                        // Refresh button
+                        Button(action: {
+                            Task {
+                                await puzzleService.fetchTodayPuzzle()
+                                await puzzleService.fetchCacheStatus()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Refresh")
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .padding(.horizontal, 20)
                         .padding(.bottom, 20)
                     }
                 }
@@ -122,6 +152,13 @@ struct TodayView: View {
         let calendar = Calendar.current
         let today = Date()
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        
+        // Debug: Print the dates to see what's happening
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .full
+        print("Puzzle date: \(dateFormatter.string(from: date))")
+        print("Today: \(dateFormatter.string(from: today))")
+        print("Yesterday: \(dateFormatter.string(from: yesterday))")
         
         if calendar.isDate(date, inSameDayAs: today) {
             return "Today's Puzzle"

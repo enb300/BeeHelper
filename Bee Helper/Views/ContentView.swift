@@ -8,31 +8,28 @@ struct ContentView: View {
             TodayView()
                 .environmentObject(puzzleService)
                 .tabItem {
-                    Image(systemName: "sun.max")
+                    Image(systemName: "sun.max.fill")
                     Text("Today")
                 }
             
             ArchiveView()
                 .environmentObject(puzzleService)
                 .tabItem {
-                    Image(systemName: "calendar")
+                    Image(systemName: "archivebox.fill")
                     Text("Archive")
                 }
             
             SettingsView()
+                .environmentObject(puzzleService)
                 .tabItem {
                     Image(systemName: "gear")
                     Text("Settings")
                 }
-        }
-        .onAppear {
-            Task {
-                await puzzleService.fetchTodayPuzzle()
-            }
         }
     }
 }
 
 #Preview {
     ContentView()
-} 
+        .environmentObject(PuzzleService())
+}

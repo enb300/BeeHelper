@@ -8,12 +8,27 @@ struct SpellingBeeResponse: Codable {
     let words: [String]
     let stats: Stats
     let source: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case date, letters, words, stats, source
+        case centerLetter = "center_letter"
+    }
 }
 
 struct Stats: Codable {
     let totalWords: Int
     let totalPangrams: Int
     let totalCompoundWords: Int
+    let prefixTally2: [String: Int]?
+    let wordCountByLetter: [String: Int]?
+    
+    enum CodingKeys: String, CodingKey {
+        case totalWords = "total_words"
+        case totalPangrams = "pangram_count"
+        case totalCompoundWords = "compound_count"
+        case prefixTally2 = "prefix_tally_2"
+        case wordCountByLetter = "word_count_by_letter"
+    }
 }
 
 @MainActor
@@ -24,6 +39,7 @@ class PuzzleService: ObservableObject {
     @Published var cacheStatus: CacheStatus?
 
     private let apiBaseURL = "https://bee-helper-api.onrender.com"
+    private let dictionaryService = DictionaryService()
     
     struct CacheStatus: Codable {
         let cachedPuzzles: Int
@@ -45,9 +61,9 @@ class PuzzleService: ObservableObject {
         
         do {
             let url = URL(string: "\(apiBaseURL)/api/spelling-bee/today")!
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, httpResponse) = try await URLSession.shared.data(from: url)
             
-            if let httpResponse = response as? HTTPURLResponse {
+            if let httpResponse = httpResponse as? HTTPURLResponse {
                 if httpResponse.statusCode != 200 {
                     throw URLError(.badServerResponse)
                 }
@@ -92,6 +108,8 @@ class PuzzleService: ObservableObject {
             print("Could not fetch cache status: \(error)")
         }
     }
+    
+
 
     func fetchYesterdayPuzzle() async {
         isLoading = true
@@ -99,9 +117,9 @@ class PuzzleService: ObservableObject {
         
         do {
             let url = URL(string: "\(apiBaseURL)/api/spelling-bee/yesterday")!
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, httpResponse) = try await URLSession.shared.data(from: url)
             
-            if let httpResponse = response as? HTTPURLResponse {
+            if let httpResponse = httpResponse as? HTTPURLResponse {
                 if httpResponse.statusCode != 200 {
                     throw URLError(.badServerResponse)
                 }
@@ -137,9 +155,9 @@ class PuzzleService: ObservableObject {
         
         do {
             let url = URL(string: "\(apiBaseURL)/api/spelling-bee/archive/\(dateString)")!
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, httpResponse) = try await URLSession.shared.data(from: url)
             
-            if let httpResponse = response as? HTTPURLResponse {
+            if let httpResponse = httpResponse as? HTTPURLResponse {
                 if httpResponse.statusCode != 200 {
                     throw URLError(.badServerResponse)
                 }
@@ -193,14 +211,6 @@ class PuzzleService: ObservableObject {
     }
 
     private func getTodayPuzzle() -> PuzzleData {
-        // Fallback sample data
-        let today = Date()
-        return PuzzleData(
-            date: today,
-            letters: ["T", "U", "L", "E", "I", "G", "D"],
-            centerLetter: "E",
-            words: ["delight", "delightful", "delightfully", "delightfulness", "delighted", "delighting", "delights", "delightedly", "delightful", "delightfully", "delightfulness"],
-            source: "fallback"
-        )
+        return dictionaryService.getFallbackPuzzle()
     }
 } 

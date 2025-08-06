@@ -220,4 +220,4 @@ struct StatItem: View {
 #Preview {
     ArchiveView()
         .environmentObject(PuzzleService())
-} 
+}

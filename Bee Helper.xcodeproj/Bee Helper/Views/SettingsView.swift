@@ -4,6 +4,7 @@ struct SettingsView: View {
     @AppStorage("autoFetchPuzzle") private var autoFetchPuzzle = true
     @AppStorage("showHints") private var showHints = false
     @AppStorage("dataSource") private var dataSource = "SBSolver"
+    @EnvironmentObject var puzzleService: PuzzleService
     private let dataSources = ["SBSolver", "NYT", "Manual Only"]
 
     var body: some View {
@@ -45,6 +46,46 @@ struct SettingsView: View {
                     
                     // Data Source Information
                     DataSourceInfoCard()
+                    
+                    // Cache Information
+                    if let cacheStatus = puzzleService.cacheStatus {
+                        SettingsSection(title: "Cache Information") {
+                            SettingsRow(
+                                title: "Cached Puzzles",
+                                subtitle: "\(cacheStatus.cachedPuzzles) puzzles stored locally",
+                                showToggle: false
+                            )
+                            
+                            SettingsRow(
+                                title: "Dictionary Size",
+                                subtitle: "\(cacheStatus.dictionarySize) words available",
+                                showToggle: false
+                            )
+                            
+                            if !cacheStatus.cacheDates.isEmpty {
+                                SettingsRow(
+                                    title: "Recent Cached Dates",
+                                    subtitle: cacheStatus.cacheDates.prefix(3).joined(separator: ", "),
+                                    showToggle: false
+                                )
+                            }
+                            
+                            Button(action: {
+                                Task {
+                                    await puzzleService.fetchCacheStatus()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Refresh Cache Status")
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                        }
+                    }
                     
                     // App Information
                     SettingsSection(title: "App Information") {
@@ -103,15 +144,22 @@ struct SettingsSection<Content: View>: View {
 struct SettingsRow: View {
     let title: String
     let subtitle: String
-    @State var isOn: Bool = false
+    @State private var isOn: Bool = false
     let showToggle: Bool
+    private let binding: Binding<Bool>?
     
     init(title: String, subtitle: String, isOn: Binding<Bool>? = nil, showToggle: Bool = true) {
         self.title = title
         self.subtitle = subtitle
         self.showToggle = showToggle
-        if let isOn = isOn {
-            self._isOn = isOn
+        self.binding = isOn
+    }
+    
+    private var effectiveBinding: Binding<Bool> {
+        if let binding = binding {
+            return binding
+        } else {
+            return $isOn
         }
     }
     
@@ -131,7 +179,7 @@ struct SettingsRow: View {
             Spacer()
             
             if showToggle {
-                Toggle("", isOn: $isOn)
+                Toggle("", isOn: effectiveBinding)
                     .labelsHidden()
             }
         }

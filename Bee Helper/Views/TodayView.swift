@@ -9,9 +9,31 @@ struct TodayView: View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 20) {
- 
+                    // Network and cache status indicators
+                    VStack(spacing: 8) {
+                        NetworkStatusView()
+                        
+                        if let cacheStatus = puzzleService.cacheStatus {
+                            HStack {
+                                Image(systemName: "externaldrive.fill")
+                                    .foregroundColor(.green)
+                                Text("\(cacheStatus.cachedPuzzles) puzzles cached")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(cacheStatus.dictionarySize) words")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .padding(.horizontal, 20)
+                        }
+                    }
                     
-
+                    
                     // Header with dynamic title and date
                     if let puzzle = puzzleService.currentPuzzle {
                         VStack(spacing: 8) {
@@ -87,6 +109,21 @@ struct TodayView: View {
                             }
                             .buttonStyle(.bordered)
                         }
+                        .padding(.horizontal, 20)
+                        
+                        // Refresh button
+                        Button(action: {
+                            Task {
+                                await puzzleService.fetchTodayPuzzle()
+                                await puzzleService.fetchCacheStatus()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Refresh")
+                            }
+                        }
+                        .buttonStyle(.bordered)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
                     }
@@ -240,4 +277,4 @@ struct StatCard: View {
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
-} 
+}

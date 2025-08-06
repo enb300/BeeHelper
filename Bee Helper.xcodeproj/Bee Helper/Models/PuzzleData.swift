@@ -14,7 +14,7 @@ struct PuzzleData: Codable, Identifiable {
 
     var pangrams: [String] {
         words.filter { word in
-            let uniqueLetters = Set(word.lowercased())
+            let uniqueLetters = Set(word.uppercased())
             return uniqueLetters.count == 7 && word.count >= 4
         }
     }

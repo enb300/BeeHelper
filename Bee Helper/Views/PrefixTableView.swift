@@ -3,55 +3,37 @@ import SwiftUI
 struct PrefixTableView: View {
     @EnvironmentObject var puzzleService: PuzzleService
     @State private var prefixLength = 2
-    
+
     var body: some View {
         VStack(spacing: 16) {
-            // Header with title and slider
             VStack(spacing: 12) {
+                Text("Word Count by Prefix")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
                 HStack {
-                    Text("Word Count by Prefix")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
+                    Text("Prefix Length: \(prefixLength)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                     
                     Spacer()
+                    
+                    Text("\(prefixLength) letters")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
                 
-                // Slider moved to top
-                VStack(spacing: 8) {
-                    HStack {
-                        Text("Prefix Length")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
-                        
-                        Text("\(prefixLength)")
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                    }
-                    
-                    Slider(value: Binding(
-                        get: { Double(prefixLength) },
-                        set: { prefixLength = Int($0) }
-                    ), in: 2...6, step: 1)
-                    .accentColor(.blue)
-                }
-                .padding(16)
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
+                Slider(value: Binding(
+                    get: { Double(prefixLength) },
+                    set: { prefixLength = Int($0) }
+                ), in: 2...6, step: 1)
+                .accentColor(.blue)
             }
             
-            // Content
             if let puzzle = puzzleService.currentPuzzle {
                 let prefixData = puzzle.wordCountByPrefix(prefixLength: prefixLength)
-                
                 if !prefixData.isEmpty {
-                    // Group prefixes by first letter
                     let groupedPrefixes = groupPrefixesByFirstLetter(prefixData)
-                    
                     LazyVStack(spacing: 16) {
                         ForEach(Array(groupedPrefixes.keys.sorted()), id: \.self) { firstLetter in
                             PrefixGroupCard(
@@ -61,16 +43,15 @@ struct PrefixTableView: View {
                         }
                     }
                 } else {
-                    Text("No words with \(prefixLength)-letter prefixes")
+                    Text("No words found with \(prefixLength)-letter prefixes")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity)
                         .padding()
                 }
             } else {
-                Text("Loading prefix data...")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding()
+                ProgressView()
+                    .frame(height: 100)
             }
         }
         .padding(20)
@@ -80,7 +61,6 @@ struct PrefixTableView: View {
     
     private func groupPrefixesByFirstLetter(_ prefixData: [String: Int]) -> [String: [(String, Int)]] {
         var grouped: [String: [(String, Int)]] = [:]
-        
         for (prefix, count) in prefixData {
             let firstLetter = String(prefix.prefix(1))
             if grouped[firstLetter] == nil {
@@ -88,12 +68,6 @@ struct PrefixTableView: View {
             }
             grouped[firstLetter]?.append((prefix, count))
         }
-        
-        // Sort prefixes within each group
-        for key in grouped.keys {
-            grouped[key]?.sort { $0.0 < $1.0 }
-        }
-        
         return grouped
     }
 }
@@ -102,32 +76,27 @@ struct PrefixGroupCard: View {
     let firstLetter: String
     let prefixes: [(String, Int)]
     @EnvironmentObject var puzzleService: PuzzleService
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Letter header
             Text(firstLetter)
-                .font(.title)
+                .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
-                .padding(.bottom, 4)
             
-            // Fluid column layout based on prefix length
             let columns = getOptimalColumnCount()
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: columns), spacing: 8) {
                 ForEach(prefixes, id: \.0) { prefix, count in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(prefix)
                             .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
                             .lineLimit(1)
+                            .foregroundColor(.primary)
                         
                         Text("(\(count))")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.secondary)
+                            .font(.caption)
                             .lineLimit(1)
+                            .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -140,29 +109,12 @@ struct PrefixGroupCard: View {
     }
     
     private func getOptimalColumnCount() -> Int {
-        // Get the current prefix length from the parent view
-        // For now, we'll use a simple heuristic based on the first prefix length
-        if let firstPrefix = prefixes.first?.0 {
-            let prefixLength = firstPrefix.count
-            
-            switch prefixLength {
-            case 2:
-                return 5 // 5 columns for 2-letter prefixes
-            case 3:
-                return 4 // 4 columns for 3-letter prefixes
-            case 4:
-                return 3 // 3 columns for 4-letter prefixes
-            case 5:
-                return 2 // 2 columns for 5-letter prefixes
-            default:
-                return 2 // Default to 2 columns for longer prefixes
-            }
+        let prefixLength = prefixes.first?.0.count ?? 2
+        switch prefixLength {
+        case 2: return 5
+        case 3: return 4
+        case 4: return 3
+        default: return 2
         }
-        return 4 // Default fallback
     }
 }
-
-#Preview {
-    PrefixTableView()
-        .environmentObject(PuzzleService())
-} 
