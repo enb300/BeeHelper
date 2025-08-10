@@ -27,6 +27,7 @@
 		B94F93662E3FD7B000AA4764 /* Bee Helper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bee Helper.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B94F93762E3FD7B200AA4764 /* Bee HelperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Bee HelperTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B94F93802E3FD7B200AA4764 /* Bee HelperUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Bee HelperUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9FC2F262E42F65500446EB7 /* filtered_4plus_7letters.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = filtered_4plus_7letters.txt; path = ../../../../../Downloads/dictionary/filtered_4plus_7letters.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -78,6 +79,7 @@
 				B94F93682E3FD7B000AA4764 /* Bee Helper */,
 				B94F93792E3FD7B200AA4764 /* Bee HelperTests */,
 				B94F93832E3FD7B200AA4764 /* Bee HelperUITests */,
+				B9FC2F252E42F65500446EB7 /* Frameworks */,
 				B94F93672E3FD7B000AA4764 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +92,14 @@
 				B94F93802E3FD7B200AA4764 /* Bee HelperUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B9FC2F252E42F65500446EB7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B9FC2F262E42F65500446EB7 /* filtered_4plus_7letters.txt */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

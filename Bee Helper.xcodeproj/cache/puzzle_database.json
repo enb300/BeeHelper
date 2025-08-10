@@ -1,4 +1,32 @@
 {
+  "2025-08-05": {
+    "date": "2025-08-05",
+    "letters": [
+      "N",
+      "B",
+      "I",
+      "K",
+      "M",
+      "P",
+      "U"
+    ],
+    "center_letter": "N",
+    "words": [
+      "bumpkin",
+      "bumpkins",
+      "bump",
+      "bumps",
+      "bumpkin",
+      "bumpkins",
+      "bump",
+      "bumps",
+      "bumpkin",
+      "bumpkins",
+      "bump",
+      "bumps"
+    ],
+    "source": "manual"
+  },
   "2025-08-04": {
     "date": "2025-08-04",
     "letters": [
@@ -63,6 +91,19 @@
       "lute",
       "tutu"
     ],
-    "source": "word.tips (Aug 4, 2025)"
+    "source": "manual"
+  },
+  "2025-08-06": {
+    "letters": [
+      "U",
+      "O",
+      "V",
+      "N",
+      "E",
+      "R",
+      "C"
+    ],
+    "center_letter": "N",
+    "source": "word.tips (pangram found)"
   }
 }

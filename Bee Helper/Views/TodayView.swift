@@ -9,30 +9,25 @@ struct TodayView: View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 20) {
-                    // Network and cache status indicators
+                    // Offline status indicator
                     VStack(spacing: 8) {
-                        NetworkStatusView()
-                        
-                        if let cacheStatus = puzzleService.cacheStatus {
-                            HStack {
-                                Image(systemName: "externaldrive.fill")
-                                    .foregroundColor(.green)
-                                Text("\(cacheStatus.cachedPuzzles) puzzles cached")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text("\(cacheStatus.dictionarySize) words")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                            .padding(.horizontal, 20)
+                        HStack {
+                            Image(systemName: "wifi.slash")
+                                .foregroundColor(.orange)
+                            Text("Offline Mode")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("Manual Input Only")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .padding(.horizontal, 20)
                     }
-                    
                     
                     // Header with dynamic title and date
                     if let puzzle = puzzleService.currentPuzzle {
@@ -56,7 +51,7 @@ struct TodayView: View {
                     
                     // Loading state
                     if puzzleService.isLoading {
-                        ProgressView("Loading puzzle...")
+                        ProgressView("Generating puzzle...")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(.top, 100)
                     }
@@ -67,7 +62,7 @@ struct TodayView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(.title)
                                 .foregroundColor(.orange)
-                            Text("Error")
+                            Text("Notice")
                                 .font(.headline)
                             Text(errorMessage)
                                 .font(.body)
@@ -111,21 +106,13 @@ struct TodayView: View {
                         }
                         .padding(.horizontal, 20)
                         
-                        // Refresh button
-                        Button(action: {
-                            Task {
-                                await puzzleService.fetchTodayPuzzle()
-                                await puzzleService.fetchCacheStatus()
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.clockwise")
-                                Text("Refresh")
-                            }
+                        // Source info
+                        if let source = puzzleService.currentPuzzle?.source {
+                            Text("Source: \(source)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 20)
                         }
-                        .buttonStyle(.bordered)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 20)
                     }
                 }
             }
@@ -138,11 +125,12 @@ struct TodayView: View {
                 AllWordsView()
                     .environmentObject(puzzleService)
             }
-            .onAppear {
-                if puzzleService.currentPuzzle == nil {
-                    Task {
-                        await puzzleService.fetchTodayPuzzle()
-                    }
+            .onReceive(puzzleService.$currentPuzzle) { _ in
+                // Force view refresh when puzzle changes
+            }
+            .onChange(of: showingManualInput) { isShowing in
+                if !isShowing {
+                    // Refresh when manual input sheet is dismissed
                 }
             }
         }
@@ -179,11 +167,11 @@ struct LetterDisplayView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Text(getLettersTitle(for: puzzleDate))
+            Text("Your Letters")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.primary)
             
-            HStack(spacing: 12) {
+            HStack(spacing: 6) {
                 ForEach(letters, id: \.self) { letter in
                     LetterCircle(
                         letter: letter,
@@ -197,22 +185,7 @@ struct LetterDisplayView: View {
         .cornerRadius(16)
     }
     
-    private func getLettersTitle(for date: Date) -> String {
-        let calendar = Calendar.current
-        let today = Date()
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
-        
-        if calendar.isDate(date, inSameDayAs: today) {
-            return "Today's Letters"
-        } else if calendar.isDate(date, inSameDayAs: yesterday) {
-            return "Yesterday's Letters"
-        } else {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "EEEE"
-            let dayName = dateFormatter.string(from: date)
-            return "\(dayName)'s Letters"
-        }
-    }
+    
 }
 
 struct LetterCircle: View {
@@ -222,8 +195,8 @@ struct LetterCircle: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(isCenter ? Color.yellow : Color.blue)
-                .frame(width: 44, height: 44)
+                .fill(isCenter ? Color.orange : Color.blue)
+                .frame(width: 40, height: 40)
             
             Text(letter)
                 .font(.title2)
@@ -260,7 +233,7 @@ struct StatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack {
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)

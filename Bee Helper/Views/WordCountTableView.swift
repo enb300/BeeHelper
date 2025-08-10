@@ -52,7 +52,7 @@ struct WordCountCard: View {
         VStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .fill(isCenterLetter ? Color.yellow : Color.blue)
+                    .fill(isCenterLetter ? Color.orange : Color.blue)
                     .frame(width: 40, height: 40)
                 
                 Text(letter)

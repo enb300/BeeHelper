@@ -1,90 +1,104 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("autoFetchPuzzle") private var autoFetchPuzzle = true
     @AppStorage("showHints") private var showHints = false
-    @AppStorage("dataSource") private var dataSource = "SBSolver"
     @EnvironmentObject var puzzleService: PuzzleService
-    private let dataSources = ["SBSolver", "NYT", "Manual Only"]
 
     var body: some View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 20) {
+                    // App Mode
+                    SettingsSection(title: "App Mode") {
+                        HStack {
+                            Image(systemName: "wifi.slash")
+                                .foregroundColor(.orange)
+                                .font(.title2)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Offline Mode")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                
+                                Text("Manual input only - no internet required")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text("Active")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.orange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.orange.opacity(0.1))
+                                .cornerRadius(6)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                    }
+                    
                     // App Settings
                     SettingsSection(title: "App Settings") {
-                        SettingsRow(
-                            title: "Auto-fetch Puzzle",
-                            subtitle: "Automatically load today's puzzle on app launch",
-                            isOn: $autoFetchPuzzle
-                        )
-                        
                         SettingsRow(
                             title: "Show Hints",
                             subtitle: "Display helpful hints and tips",
                             isOn: $showHints
                         )
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Data Source")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            Text("Choose where to fetch puzzle data from")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            
-                            Picker("Data Source", selection: $dataSource) {
-                                ForEach(dataSources, id: \.self) { source in
-                                    Text(source).tag(source)
-                                }
-                            }
-                            .pickerStyle(SegmentedPickerStyle())
-                        }
-                        .padding(.vertical, 8)
                     }
                     
-                    // Data Source Information
-                    DataSourceInfoCard()
+                    // Dictionary Information
+                    SettingsSection(title: "Dictionary Information") {
+                        SettingsRow(
+                            title: "Dictionary Size",
+                            subtitle: "10,577 words loaded",
+                            showToggle: false
+                        )
+                        
+                        SettingsRow(
+                            title: "Source",
+                            subtitle: "Comprehensive word list",
+                            showToggle: false
+                        )
+                        
+                        SettingsRow(
+                            title: "Status",
+                            subtitle: "Ready for manual input",
+                            showToggle: false
+                        )
+                    }
                     
-                    // Cache Information
-                    if let cacheStatus = puzzleService.cacheStatus {
-                        SettingsSection(title: "Cache Information") {
-                            SettingsRow(
-                                title: "Cached Puzzles",
-                                subtitle: "\(cacheStatus.cachedPuzzles) puzzles stored locally",
-                                showToggle: false
-                            )
-                            
-                            SettingsRow(
-                                title: "Dictionary Size",
-                                subtitle: "\(cacheStatus.dictionarySize) words available",
-                                showToggle: false
-                            )
-                            
-                            if !cacheStatus.cacheDates.isEmpty {
-                                SettingsRow(
-                                    title: "Recent Cached Dates",
-                                    subtitle: cacheStatus.cacheDates.prefix(3).joined(separator: ", "),
-                                    showToggle: false
-                                )
+                    // Coming Soon Features
+                    SettingsSection(title: "Coming Soon") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "clock.badge.questionmark")
+                                    .foregroundColor(.blue)
+                                Text("Auto-fetch Today's Puzzle")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
                             }
                             
-                            Button(action: {
-                                Task {
-                                    await puzzleService.fetchCacheStatus()
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.clockwise")
-                                    Text("Refresh Cache Status")
-                                }
-                                .frame(maxWidth: .infinity)
+                            HStack {
+                                Image(systemName: "archivebox")
+                                    .foregroundColor(.blue)
+                                Text("Puzzle Archive")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
                             }
-                            .buttonStyle(.bordered)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
+                            
+                            HStack {
+                                Image(systemName: "chart.bar")
+                                    .foregroundColor(.blue)
+                                Text("Statistics & Analytics")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
                         }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                     }
                     
                     // App Information
@@ -188,71 +202,7 @@ struct SettingsRow: View {
     }
 }
 
-struct DataSourceInfoCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image(systemName: "info.circle.fill")
-                    .foregroundColor(.blue)
-                Text("Data Sources")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-            }
-            
-            VStack(alignment: .leading, spacing: 12) {
-                DataSourceItem(
-                    name: "SBSolver",
-                    description: "Community-driven puzzle data",
-                    status: "Primary"
-                )
-                
-                DataSourceItem(
-                    name: "NYT",
-                    description: "New York Times official data",
-                    status: "Fallback"
-                )
-                
-                DataSourceItem(
-                    name: "Manual Only",
-                    description: "User-entered letters only",
-                    status: "Custom"
-                )
-            }
-        }
-        .padding(20)
-        .background(Color(.systemGray6))
-        .cornerRadius(16)
-    }
-}
-
-struct DataSourceItem: View {
-    let name: String
-    let description: String
-    let status: String
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(name)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            Text(status)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.blue)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(6)
-        }
-    }
+#Preview {
+    SettingsView()
+        .environmentObject(PuzzleService())
 }

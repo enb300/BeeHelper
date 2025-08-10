@@ -11,7 +11,7 @@ struct SpellingBeeResponse: Codable {
     
     enum CodingKeys: String, CodingKey {
         case date, letters, words, stats, source
-        case centerLetter = "centerLetter"
+        case centerLetter = "center_letter"
     }
 }
 
@@ -23,9 +23,9 @@ struct Stats: Codable {
     let wordCountByLetter: [String: Int]?
     
     enum CodingKeys: String, CodingKey {
-        case totalWords = "totalWords"
-        case totalPangrams = "totalPangrams"
-        case totalCompoundWords = "totalCompoundWords"
+        case totalWords = "total_words"
+        case totalPangrams = "pangram_count"
+        case totalCompoundWords = "compound_count"
         case prefixTally2 = "prefix_tally_2"
         case wordCountByLetter = "word_count_by_letter"
     }
@@ -37,6 +37,8 @@ class PuzzleService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var cacheStatus: CacheStatus?
+    
+    private let dictionaryService = DictionaryService()
 
     private let apiBaseURL = "http://localhost:5001"
     
@@ -48,14 +50,30 @@ class PuzzleService: ObservableObject {
     }
 
     init() {
+        // Start with a default puzzle instead of trying to fetch from API
+        currentPuzzle = getDefaultPuzzle()
         Task {
-            await testJSONDecoding() // Test JSON decoding first
-            await fetchTodayPuzzle()
             await fetchCacheStatus()
         }
     }
+    
+    private func getDefaultPuzzle() -> PuzzleData {
+        // Create a default puzzle using the local dictionary
+        let letters = ["S", "B", "H", "E", "L", "P", "R"]
+        let centerLetter = "E"
+        let words = dictionaryService.generateSpellingBeeWords(letters: letters, centerLetter: centerLetter)
+        
+        return PuzzleData(
+            date: Date(),
+            letters: letters,
+            centerLetter: centerLetter,
+            words: words,
+            source: "offline"
+        )
+    }
 
     func fetchTodayPuzzle() async {
+        // This is now just a fallback - the app will work offline
         isLoading = true
         errorMessage = nil
         
@@ -83,154 +101,43 @@ class PuzzleService: ObservableObject {
                 source: response.source
             )
         } catch {
-            errorMessage = "Failed to fetch today's puzzle: \(error.localizedDescription)"
-            // Try fallback puzzle if network fails
-            currentPuzzle = getTodayPuzzle()
+            errorMessage = "Network unavailable - using offline mode"
+            // Use default puzzle if network fails
+            currentPuzzle = getDefaultPuzzle()
         }
         
         isLoading = false
     }
     
     func fetchCacheStatus() async {
-        do {
-            let url = URL(string: "\(apiBaseURL)/api/spelling-bee/cache")!
-            let (data, response) = try await URLSession.shared.data(from: url)
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode != 200 {
-                    return
-                }
-            }
-            
-            cacheStatus = try JSONDecoder().decode(CacheStatus.self, from: data)
-        } catch {
-            // Cache status is not critical, so we don't show errors
-            print("Could not fetch cache status: \(error)")
-        }
-    }
-    
-    func testJSONDecoding() async {
-        // Test with a simple JSON that matches our structure
-        let testJSON = """
-        {
-            "date": "2025-08-05",
-            "center_letter": "N",
-            "letters": ["E", "N", "V", "C", "U", "O", "R"],
-            "words": ["CEROON", "COCOON", "CONCERN"],
-            "stats": {
-                "total_words": 3,
-                "pangram_count": 1,
-                "compound_count": 0
-            },
-            "source": "test"
-        }
-        """
-        
-        do {
-            let data = testJSON.data(using: .utf8)!
-            let response = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
-            print("✅ JSON decoding test successful!")
-            print("Decoded: \(response.date), \(response.centerLetter), \(response.words.count) words")
-        } catch {
-            print("❌ JSON decoding test failed: \(error)")
-        }
-    }
-
-    func fetchYesterdayPuzzle() async {
-        isLoading = true
-        errorMessage = nil
-        
-        do {
-            let url = URL(string: "\(apiBaseURL)/api/spelling-bee/yesterday")!
-            let (data, httpResponse) = try await URLSession.shared.data(from: url)
-            
-            if let httpResponse = httpResponse as? HTTPURLResponse {
-                if httpResponse.statusCode != 200 {
-                    throw URLError(.badServerResponse)
-                }
-            }
-            
-            let response = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            let date = dateFormatter.date(from: response.date) ?? Date()
-            
-            currentPuzzle = PuzzleData(
-                date: date,
-                letters: response.letters,
-                centerLetter: response.centerLetter,
-                words: response.words,
-                source: response.source
-            )
-        } catch {
-            errorMessage = "Failed to fetch yesterday's puzzle: \(error.localizedDescription)"
-        }
-        
-        isLoading = false
+        // Simplified cache status for offline mode
+        cacheStatus = CacheStatus(
+            cachedPuzzles: 0,
+            cacheDates: [],
+            dictionarySize: 0,
+            cacheFile: "offline"
+        )
     }
 
     func fetchArchivePuzzle(for date: Date) async {
-        isLoading = true
-        errorMessage = nil
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let dateString = dateFormatter.string(from: date)
-        
-        do {
-            let url = URL(string: "\(apiBaseURL)/api/spelling-bee/archive/\(dateString)")!
-            let (data, httpResponse) = try await URLSession.shared.data(from: url)
-            
-            if let httpResponse = httpResponse as? HTTPURLResponse {
-                if httpResponse.statusCode != 200 {
-                    throw URLError(.badServerResponse)
-                }
-            }
-            
-            let response = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
-            
-            let responseDate = dateFormatter.date(from: response.date) ?? date
-            
-            currentPuzzle = PuzzleData(
-                date: responseDate,
-                letters: response.letters,
-                centerLetter: response.centerLetter,
-                words: response.words,
-                source: response.source
-            )
-        } catch {
-            errorMessage = "Failed to fetch archive puzzle: \(error.localizedDescription)"
-        }
-        
-        isLoading = false
+        // Archive functionality disabled for offline mode
+        errorMessage = "Archive puzzles not available in offline mode"
     }
 
     func generateCustomPuzzle(letters: [String], centerLetter: String) async {
         isLoading = true
         errorMessage = nil
         
-        let lettersString = letters.joined()
+        // Generate puzzle using local dictionary only
+        let words = dictionaryService.generateSpellingBeeWords(letters: letters, centerLetter: centerLetter)
         
-        do {
-            let url = URL(string: "\(apiBaseURL)/api/spelling-bee/generate?letters=\(lettersString)&center=\(centerLetter)")!
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response = try JSONDecoder().decode(SpellingBeeResponse.self, from: data)
-            
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            let date = dateFormatter.date(from: response.date) ?? Date()
-            
-            currentPuzzle = PuzzleData(
-                date: date,
-                letters: response.letters,
-                centerLetter: response.centerLetter,
-                words: response.words,
-                source: response.source
-            )
-        } catch {
-            errorMessage = "Failed to generate puzzle: \(error.localizedDescription)"
-        }
+        currentPuzzle = PuzzleData(
+            date: Date(),
+            letters: letters,
+            centerLetter: centerLetter,
+            words: words,
+            source: "manual_offline"
+        )
         
         isLoading = false
     }

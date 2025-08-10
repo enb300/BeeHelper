@@ -1,0 +1,135 @@
+2025-08-07 03:45:08 +0000 [MT] Initial pipeline context: <IDEDistributionProcessingPipelineContext: 0x11d44f480; archive(resolved)="<IDEArchive: 0x11af8ef90>", distributionTask(resolved)="2", distributionDestination(resolved)="1", distributionMethod(resolved)="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team(resolved)="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	Chain (14, self inclusive):
+	<IDEDistributionProcessingPipelineContext: 0x11d44f480; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionProcessingPipelineContext: 0x11e620fa0; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x1140f5e40; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x14d1fa0a0; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x14d1fe4a0; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x14c7b0f70; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x14d1f0d10; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x1140ebee0; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x14d1fc660; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="<IDEProvisioningBasicTeam: 0x11d219770; teamID='263TW79J5N', teamName='(null)'>">
+	<IDEDistributionContext: 0x14d2fe510; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="(null)">
+	<IDEDistributionContext: 0x14d1fbb90; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="(null)">
+	<IDEDistributionContext: 0x14d2fd050; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="(null)">
+	<IDEDistributionContext: 0x114010740; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="<IDEDistributionMethodDevelopmentSigned: 0x11b0c0120>", team="(null)">
+	<IDEDistributionContext: 0x11af8f6e0; archive = "<IDEArchive: 0x11af8ef90>", distributionMethod="(null)", team="(null)">
+</IDEDistributionProcessingPipelineContext: 0x11d44f480>
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionCreateDestRootStep
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionCopyItemStep
+2025-08-07 03:45:08 +0000 [MT] Running /usr/bin/ditto '-V' '/Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app' '/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root/Payload/Bee Helper.app'
+2025-08-07 03:45:08 +0000  >>> Copying /Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app 
+2025-08-07 03:45:08 +0000  copying file ./_CodeSignature/CodeResources ... 
+2025-08-07 03:45:08 +0000  3011 bytes for ./_CodeSignature/CodeResources
+2025-08-07 03:45:08 +0000  copying file ./AppIcon60x60@2x.png ... 
+2025-08-07 03:45:08 +0000  9767 bytes for ./AppIcon60x60@2x.png
+2025-08-07 03:45:08 +0000  copying file ./cleaned_scraped_words.txt ... 
+2025-08-07 03:45:08 +0000  78427 bytes for ./cleaned_scraped_words.txt
+2025-08-07 03:45:08 +0000  copying file ./Bee Helper ... 
+2025-08-07 03:45:08 +0000  342928 bytes for ./Bee Helper
+2025-08-07 03:45:08 +0000  copying file ./Assets.car ... 
+2025-08-07 03:45:08 +0000  335519 bytes for ./Assets.car
+2025-08-07 03:45:08 +0000  copying file ./AppIcon76x76@2x~ipad.png ... 
+2025-08-07 03:45:08 +0000  12711 bytes for ./AppIcon76x76@2x~ipad.png
+2025-08-07 03:45:08 +0000  copying file ./embedded.mobileprovision ... 
+2025-08-07 03:45:08 +0000  12300 bytes for ./embedded.mobileprovision
+2025-08-07 03:45:08 +0000  copying file ./Info.plist ... 
+2025-08-07 03:45:08 +0000  1421 bytes for ./Info.plist
+2025-08-07 03:45:08 +0000  copying file ./PkgInfo ... 
+2025-08-07 03:45:08 +0000  8 bytes for ./PkgInfo
+2025-08-07 03:45:08 +0000 [MT] /usr/bin/ditto exited with 0
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionEmbedProfileStep
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionInfoPlistStep
+2025-08-07 03:45:08 +0000 [MT] Skipping step: IDEDistributionInfoPlistStep because it said so
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionAppThinningPlistStep
+2025-08-07 03:45:08 +0000 [MT] Skipping step: IDEDistributionAppThinningPlistStep because it said so
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionSymbolsStep
+2025-08-07 03:45:08 +0000 [MT] Skipping step: IDEDistributionSymbolsStep because it said so
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionAppThinningStep
+2025-08-07 03:45:08 +0000 [MT] Skipping step: IDEDistributionAppThinningStep because it said so
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionArchThinningStep
+2025-08-07 03:45:08 +0000 [MT] Item /Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app doesn't have the entitlement com.apple.developer.web-browser-engine.host enabled, returning ["arm64e"]
+2025-08-07 03:45:08 +0000 [MT] Archs to thin for item /Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app are ["arm64e"]
+2025-08-07 03:45:08 +0000 [MT] Running /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo '/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root/Payload/Bee Helper.app/Bee Helper' '-verify_arch' 'arm64e'
+2025-08-07 03:45:08 +0000 [MT] /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo exited with 1
+2025-08-07 03:45:08 +0000 [MT] Skipping architecture thinning for item "Bee Helper" because arch "arm64e" wasn't found
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionODRStep
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionStripXattrsStep
+2025-08-07 03:45:08 +0000 [MT] Skipping stripping extended attributes because the codesign step will strip them.
+2025-08-07 03:45:08 +0000 [MT] Processing step: IDEDistributionCodesignStep
+2025-08-07 03:45:08 +0000 [MT] Entitlements for <IDEDistributionItem: 0x14d443960; bundleID='enb.Bee-Helper', path='<DVTFilePath:0x11af8eca0:'/Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x14d037580; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x11d469f20; name='Apple Development: emma.b@comcast.net (928QLG4462)', hash='E2C8E237D03B48927A37C6036A01B5AB6B12D64E', serialNumber='606435825F2E53D1851509F62FAF3576', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2025-08-02 17:27:43 +0000''>', entitlements='{
+    "application-identifier" = "263TW79J5N.enb.Bee-Helper";
+    "com.apple.developer.team-identifier" = 263TW79J5N;
+    "get-task-allow" = 1;
+}', teamID='263TW79J5N', identifier='enb.Bee-Helper', executablePath='<DVTFilePath:0x11afc1d50:'/Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app/Bee Helper'>', hardenedRuntime='0'>'>: {
+    "application-identifier" = "263TW79J5N.enb.Bee-Helper";
+    "com.apple.developer.team-identifier" = 263TW79J5N;
+    "get-task-allow" = 1;
+}
+2025-08-07 03:45:08 +0000 [MT] Associated App Clip Identifiers Filter: Skipping because "com.apple.developer.associated-appclip-app-identifiers" is not present
+2025-08-07 03:45:09 +0000 [MT] Entitlements for <IDEDistributionItem: 0x14d443960; bundleID='enb.Bee-Helper', path='<DVTFilePath:0x11af8eca0:'/Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x14d037580; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x119cfa840; name='Apple Development: emma.b@comcast.net (928QLG4462)', hash='E2C8E237D03B48927A37C6036A01B5AB6B12D64E', serialNumber='606435825F2E53D1851509F62FAF3576', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2025-08-02 17:27:43 +0000''>', entitlements='{
+    "application-identifier" = "263TW79J5N.enb.Bee-Helper";
+    "com.apple.developer.team-identifier" = 263TW79J5N;
+    "get-task-allow" = 1;
+}', teamID='263TW79J5N', identifier='enb.Bee-Helper', executablePath='<DVTFilePath:0x11afc1d50:'/Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app/Bee Helper'>', hardenedRuntime='0'>'> are: {
+    "application-identifier" = "263TW79J5N.enb.Bee-Helper";
+    "com.apple.developer.team-identifier" = 263TW79J5N;
+    "get-task-allow" = 1;
+}
+2025-08-07 03:45:09 +0000 [MT] Writing entitlements for <IDEDistributionItem: 0x14d443960; bundleID='enb.Bee-Helper', path='<DVTFilePath:0x11af8eca0:'/Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app'>', codeSigningInfo='<_DVTCodeSigningInformation_Path: 0x14d037580; isSigned='1', isAdHocSigned='0', signingCertificate='<DVTSigningCertificate: 0x11afd7950; name='Apple Development: emma.b@comcast.net (928QLG4462)', hash='E2C8E237D03B48927A37C6036A01B5AB6B12D64E', serialNumber='606435825F2E53D1851509F62FAF3576', certificateKinds='(
+    "1.2.840.113635.100.6.1.12",
+    "1.2.840.113635.100.6.1.2"
+), issueDate='2025-08-02 17:27:43 +0000''>', entitlements='{
+    "application-identifier" = "263TW79J5N.enb.Bee-Helper";
+    "com.apple.developer.team-identifier" = 263TW79J5N;
+    "get-task-allow" = 1;
+}', teamID='263TW79J5N', identifier='enb.Bee-Helper', executablePath='<DVTFilePath:0x11afc1d50:'/Users/emmabrown/Library/Mobile Documents/com~apple~CloudDocs/Personal/Bee Helper/Bee_Helper.xcarchive/Products/Applications/Bee Helper.app/Bee Helper'>', hardenedRuntime='0'>'> to: /var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/entitlements~~~SEyEeP
+2025-08-07 03:45:09 +0000 [MT] invoking codesign: <NSConcreteTask: 0x11abb2330; launchPath='/usr/bin/codesign', arguments='(
+    "-f",
+    "-s",
+    E2C8E237D03B48927A37C6036A01B5AB6B12D64E,
+    "--entitlements",
+    "/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/entitlements~~~SEyEeP",
+    "--preserve-metadata=identifier,flags,runtime",
+    "--generate-entitlement-der",
+    "--strip-disallowed-xattrs",
+    "-vvv",
+    "/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root/Payload/Bee Helper.app"
+)'>
+2025-08-07 03:45:09 +0000 [MT] codesign output: /var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root/Payload/Bee Helper.app: replacing existing signature
+/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root/Payload/Bee Helper.app: signed app bundle with Mach-O thin (arm64) [enb.Bee-Helper]
+2025-08-07 03:45:09 +0000 [MT] Processing step: IDEDistributionZipODRItemStep
+2025-08-07 03:45:09 +0000 [MT] Skipping step: IDEDistributionZipODRItemStep because it said so
+2025-08-07 03:45:09 +0000 [MT] Processing step: IDEDistributionCreateIPAStep
+2025-08-07 03:45:09 +0000 [MT] Running /usr/bin/ditto '-V' '-c' '-k' '--norsrc' '/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root' '/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Packages/Bee Helper.ipa'
+2025-08-07 03:45:09 +0000  >>> Copying /var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root 
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/_CodeSignature/CodeResources ... 
+2025-08-07 03:45:09 +0000  3011 bytes for ./Payload/Bee Helper.app/_CodeSignature/CodeResources
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/AppIcon60x60@2x.png ... 
+2025-08-07 03:45:09 +0000  9767 bytes for ./Payload/Bee Helper.app/AppIcon60x60@2x.png
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/cleaned_scraped_words.txt ... 
+2025-08-07 03:45:09 +0000  78427 bytes for ./Payload/Bee Helper.app/cleaned_scraped_words.txt
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/Bee Helper ... 
+2025-08-07 03:45:09 +0000  342928 bytes for ./Payload/Bee Helper.app/Bee Helper
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/Assets.car ... 
+2025-08-07 03:45:09 +0000  335519 bytes for ./Payload/Bee Helper.app/Assets.car
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/AppIcon76x76@2x~ipad.png ... 
+2025-08-07 03:45:09 +0000  12711 bytes for ./Payload/Bee Helper.app/AppIcon76x76@2x~ipad.png
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/embedded.mobileprovision ... 
+2025-08-07 03:45:09 +0000  12300 bytes for ./Payload/Bee Helper.app/embedded.mobileprovision
+2025-08-07 03:45:09 +0000  copying file ./Payload/Bee Helper.app/Info.plist ... 
+2025-08-07 03:45:09 +0000  1421 bytes for ./Payload/Bee Helper.app/Info.plist
+copying file ./Payload/Bee Helper.app/PkgInfo ... 
+2025-08-07 03:45:09 +0000  8 bytes for ./Payload/Bee Helper.app/PkgInfo
+2025-08-07 03:45:09 +0000 [MT] /usr/bin/ditto exited with 0
+2025-08-07 03:45:09 +0000 [MT] Processing step: IDEDistributionAppStoreInformationStep
+2025-08-07 03:45:09 +0000 [MT] Skipping step: IDEDistributionAppStoreInformationStep because it said so
+2025-08-07 03:45:09 +0000 [MT] Processing step: IDEDistributionGenerateProcessedDistributionItems
+2025-08-07 03:45:09 +0000 [MT] IDEDistributionItem init <DVTFilePath:0x11d4416e0:'/var/folders/m2/dmkkb4j13px3mnqv39yh2kd40000gn/T/XcodeDistPipeline.~~~HVtMQ7/Root/Payload/Bee Helper.app'>
+2025-08-07 03:45:09 +0000 [MT] Processing step: IDEDistributionCreateManifestStep

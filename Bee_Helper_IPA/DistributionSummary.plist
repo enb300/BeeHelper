@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Bee Helper.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>1</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>E2C8E237D03B48927A37C6036A01B5AB6B12D64E</string>
+				<key>dateExpires</key>
+				<string>8/2/26</string>
+				<key>type</key>
+				<string>Apple Development</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>263TW79J5N.enb.Bee-Helper</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>263TW79J5N</string>
+				<key>get-task-allow</key>
+				<true/>
+			</dict>
+			<key>name</key>
+			<string>Bee Helper.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>b89dda86-8dcb-4109-a85e-5fe5550af5cd</string>
+				<key>dateExpires</key>
+				<string>8/10/25</string>
+				<key>name</key>
+				<string>iOS Team Provisioning Profile: enb.Bee-Helper</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>263TW79J5N</string>
+				<key>name</key>
+				<string></string>
+			</dict>
+			<key>versionNumber</key>
+			<string>1.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>

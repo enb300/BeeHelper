@@ -5,18 +5,18 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            TodayView()
+            ManualInputView()
                 .environmentObject(puzzleService)
                 .tabItem {
-                    Image(systemName: "sun.max.fill")
-                    Text("Today")
+                    Image(systemName: "plus.circle.fill")
+                    Text("Create")
                 }
             
-            ArchiveView()
+            ComingSoonView()
                 .environmentObject(puzzleService)
                 .tabItem {
-                    Image(systemName: "archivebox.fill")
-                    Text("Archive")
+                    Image(systemName: "clock.badge.questionmark")
+                    Text("Coming Soon")
                 }
             
             SettingsView()
