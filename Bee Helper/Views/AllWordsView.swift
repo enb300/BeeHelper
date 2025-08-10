@@ -9,27 +9,6 @@ struct AllWordsView: View {
             ScrollView {
                 LazyVStack(spacing: 20) {
                     if let puzzle = puzzleService.currentPuzzle {
-                        // Debug info
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Debug Info")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text("Total words: \(puzzle.totalWords)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text("Words array count: \(puzzle.words.count)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            if !puzzle.words.isEmpty {
-                                Text("Sample words: \(Array(puzzle.words.prefix(5)))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        
                         // All words section
                         WordSection(
                             title: "All Words",
@@ -109,22 +88,9 @@ struct WordSection: View {
                     .foregroundColor(.secondary)
             }
             
-            // Debug info for words
-            if words.isEmpty {
-                Text("No words to display")
-                    .font(.caption)
-                    .foregroundColor(.red)
-                    .padding()
-            } else {
-                Text("Displaying \(words.count) words")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 8)
-                
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
-                    ForEach(words, id: \.self) { word in
-                        WordCard(word: word, color: color)
-                    }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
+                ForEach(words, id: \.self) { word in
+                    WordCard(word: word, color: color)
                 }
             }
         }

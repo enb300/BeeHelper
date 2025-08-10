@@ -53,7 +53,7 @@ struct SettingsView: View {
                     SettingsSection(title: "Dictionary Information") {
                         SettingsRow(
                             title: "Dictionary Size",
-                            subtitle: "10,577 words loaded",
+                            subtitle: "115,244 words loaded",
                             showToggle: false
                         )
                         

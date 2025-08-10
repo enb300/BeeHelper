@@ -68,6 +68,12 @@ struct PrefixTableView: View {
             }
             grouped[firstLetter]?.append((prefix, count))
         }
+        
+        // Sort prefixes alphabetically within each letter group
+        for key in grouped.keys {
+            grouped[key]?.sort { $0.0 < $1.0 }
+        }
+        
         return grouped
     }
 }

@@ -8,6 +8,7 @@ struct ManualInputView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     @State private var showingManualInput = true
+    @State private var showingAllWords = false
     @FocusState private var focusedField: Int?
 
     var body: some View {
@@ -168,7 +169,7 @@ struct ManualInputView: View {
                         .buttonStyle(.borderedProminent)
                         
                         Button("Reveal All Words") {
-                            // This would show all words
+                            showingAllWords = true
                         }
                         .buttonStyle(.bordered)
                     }
@@ -191,6 +192,10 @@ struct ManualInputView: View {
             Button("OK") { }
         } message: {
             Text(alertMessage)
+        }
+        .sheet(isPresented: $showingAllWords) {
+            AllWordsView()
+                .environmentObject(puzzleService)
         }
         .onAppear {
             // Set initial focus

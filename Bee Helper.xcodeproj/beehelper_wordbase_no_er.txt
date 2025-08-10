@@ -648,12 +648,14 @@ album
 albumen
 albumin
 albums
+alcatraz
 alcazar
 alchemy
 alcohol
 alcoholic
 alcoholics
 alcohols
+alcopop
 alcove
 alcoves
 aldehyde
@@ -703,6 +705,7 @@ alkaloids
 alkane
 alkene
 allah
+allan
 allay
 allayed
 allaying

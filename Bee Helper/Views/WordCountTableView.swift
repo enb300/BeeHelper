@@ -11,25 +11,15 @@ struct WordCountTableView: View {
             
             if let puzzle = puzzleService.currentPuzzle {
                 let wordCounts = puzzle.wordCountByFirstLetter
-                VStack(spacing: 12) {
-                    HStack(spacing: 12) {
-                        ForEach(Array(wordCounts.keys.sorted().prefix(4)), id: \.self) { letter in
-                            WordCountCard(
-                                letter: letter,
-                                count: wordCounts[letter] ?? 0,
-                                isCenterLetter: letter == puzzle.centerLetter
-                            )
-                        }
-                    }
-                    HStack(spacing: 12) {
-                        ForEach(Array(wordCounts.keys.sorted().suffix(3)), id: \.self) { letter in
-                            WordCountCard(
-                                letter: letter,
-                                count: wordCounts[letter] ?? 0,
-                                isCenterLetter: letter == puzzle.centerLetter
-                            )
-                        }
-                        Spacer()
+                let sortedLetters = wordCounts.keys.sorted()
+                
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 4), spacing: 12) {
+                    ForEach(sortedLetters, id: \.self) { letter in
+                        WordCountCard(
+                            letter: letter,
+                            count: wordCounts[letter] ?? 0,
+                            isCenterLetter: letter == puzzle.centerLetter
+                        )
                     }
                 }
             } else {

@@ -4,7 +4,7 @@ import SwiftUI
 struct Bee_HelperApp: App {
     var body: some Scene {
         WindowGroup {
-            SplashView()
+            EnhancedSplashView()
                 .environmentObject(PuzzleService())
         }
     }
