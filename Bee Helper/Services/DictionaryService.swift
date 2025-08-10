@@ -57,8 +57,10 @@ class DictionaryService: ObservableObject {
         let basicWords = [
             "THE", "AND", "FOR", "ARE", "BUT", "NOT", "YOU", "ALL", "CAN", "HER", "WAS", "ONE", "OUR", "OUT", "DAY", "GET", "HAS", "HIM", "HIS", "HOW", "MAN", "NEW", "NOW", "OLD", "SEE", "TWO", "WAY", "WHO", "BOY", "DID", "ITS", "LET", "PUT", "SAY", "SHE", "TOO", "USE",
             "ABOUT", "AFTER", "AGAIN", "AGAINST", "ALONG", "AMONG", "ANOTHER", "ANSWER", "AROUND", "BEFORE", "BEHIND", "BETWEEN", "BETTER", "BRING", "BUILD", "CALLED", "CAME", "CARRY", "CHANGE", "COME", "COULD", "EACH", "EVEN", "EVERY", "FIND", "FIRST", "FOUND", "FROM", "GIVE", "GOES", "GOOD", "GREAT", "HAD", "HAS", "HAVE", "HERE", "HIGH", "INTO", "JUST", "KNOW", "LARGE", "LITTLE", "LONG", "LOOK", "MADE", "MAKE", "MANY", "MIGHT", "MORE", "MOST", "MOVE", "MUCH", "MUST", "NAME", "NEAR", "NEVER", "NEXT", "ONLY", "OVER", "PART", "PEOPLE", "PLACE", "RIGHT", "SAID", "SAME", "SEEM", "SHOULD", "SMALL", "SOUND", "STILL", "SUCH", "TAKE", "TELL", "THAN", "THAT", "THEIR", "THEM", "THEN", "THERE", "THEY", "THING", "THINK", "THIS", "THOSE", "THROUGH", "TIME", "UNDER", "VERY", "WANT", "WELL", "WENT", "WERE", "WHAT", "WHEN", "WHERE", "WHICH", "WHILE", "WHO", "WILL", "WITH", "WORD", "WORK", "WORLD", "WOULD", "YEAR", "YOUR",
-            // Add spelling bee specific words for testing
-            "ALIEN", "ALINE", "ALOIN", "ANILE", "ANOLE", "ANTLE", "ELAIN", "ELOIN", "ENTIA", "INLET", "LATEN", "LEANT", "LENTO", "LIANE", "LIENT", "LINEN", "LITEN", "LOAN", "NAIL", "NEAT", "NITE", "NOEL", "NOIL", "OLEIN", "TALON", "TINE", "TOIL", "TONE"
+            // Add spelling bee specific words for testing - expanded for default puzzle letters A,E,I,L,N,O,T
+            "ALIEN", "ALINE", "ALOIN", "ANILE", "ANOLE", "ANTLE", "ELAIN", "ELOIN", "ENTIA", "INLET", "LATEN", "LEANT", "LENTO", "LIANE", "LIENT", "LINEN", "LITEN", "LOAN", "NAIL", "NEAT", "NITE", "NOEL", "NOIL", "OLEIN", "TALON", "TINE", "TOIL", "TONE",
+            // Additional words for A,E,I,L,N,O,T puzzle
+            "AIL", "AILED", "AILING", "AINT", "ALE", "ALIEN", "ALINE", "ALOIN", "ANILE", "ANOLE", "ANTLE", "ANT", "ATE", "EAT", "EATEN", "EATING", "ELAIN", "ELOIN", "ENTIA", "ETA", "INLET", "ION", "LATEN", "LEAN", "LEANT", "LENT", "LENTO", "LIE", "LIED", "LIEN", "LIANE", "LIENT", "LINEN", "LINE", "LINED", "LINING", "LINT", "LIT", "LITE", "LITEN", "LOAN", "LOANED", "LOANING", "NAIL", "NAILED", "NAILING", "NEAT", "NITE", "NOEL", "NOIL", "NOT", "NOTE", "NOTED", "NOTING", "OLEIN", "ONE", "TALON", "TAN", "TEA", "TEAL", "TEN", "TINE", "TOE", "TOIL", "TOILED", "TOILING", "TONE", "TON", "TONAL", "TONNE"
         ]
         
         dictionary = Set(basicWords)
@@ -124,7 +126,7 @@ class DictionaryService: ObservableObject {
         
         print("✅ Generated \(validWords.count) valid words")
         if validWords.count > 0 {
-            print("📝 First few words: \(Array(validWords.prefix(5)))")
+            print("📝 Sample valid words: \(Array(validWords.prefix(10)))")
         }
         return validWords.sorted()
     }
