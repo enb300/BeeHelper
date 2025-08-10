@@ -8,14 +8,18 @@ struct AllWordsView: View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 20) {
-                    if let puzzle = puzzleService.currentPuzzle {
-                        // All words section
-                        WordSection(
-                            title: "All Words",
-                            subtitle: "\(puzzle.totalWords) total words",
-                            words: puzzle.words.sorted(),
-                            color: .blue
-                        )
+                                    if let puzzle = puzzleService.currentPuzzle {
+                    // Debug info
+                    let _ = print("🔍 AllWordsView: Puzzle has \(puzzle.totalWords) words")
+                    let _ = print("📝 AllWordsView: First 5 words: \(Array(puzzle.words.prefix(5)))")
+                    
+                    // All words section
+                    WordSection(
+                        title: "All Words",
+                        subtitle: "\(puzzle.totalWords) total words",
+                        words: puzzle.words.sorted(),
+                        color: .blue
+                    )
                         
                         // Pangrams section
                         if !puzzle.pangrams.isEmpty {

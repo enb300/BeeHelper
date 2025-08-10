@@ -59,9 +59,13 @@ class PuzzleService: ObservableObject {
     
     private func getDefaultPuzzle() -> PuzzleData {
         // Create a default puzzle using the local dictionary
-        let letters = ["S", "B", "H", "E", "L", "P", "R"]
+        let letters = ["A", "E", "I", "L", "N", "O", "T"]
         let centerLetter = "E"
         let words = dictionaryService.generateSpellingBeeWords(letters: letters, centerLetter: centerLetter)
+        
+        print("🔍 Default puzzle generated with \(words.count) words")
+        print("📝 Sample words: \(Array(words.prefix(10)))")
+        print("🔤 Letters: \(letters), Center: \(centerLetter)")
         
         return PuzzleData(
             date: Date(),

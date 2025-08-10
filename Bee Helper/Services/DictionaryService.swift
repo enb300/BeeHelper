@@ -98,6 +98,7 @@ class DictionaryService: ObservableObject {
         
         print("🔍 Generating words for letters: \(letters), center: \(centerLetter)")
         print("📚 Using dictionary with \(dictionary.count) words")
+        print("🔤 Letter set: \(letterSet)")
         
         for word in dictionary {
             let wordUpper = word.uppercased()
@@ -122,6 +123,9 @@ class DictionaryService: ObservableObject {
         }
         
         print("✅ Generated \(validWords.count) valid words")
+        if validWords.count > 0 {
+            print("📝 First few words: \(Array(validWords.prefix(5)))")
+        }
         return validWords.sorted()
     }
     
